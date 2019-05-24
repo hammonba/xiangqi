@@ -1,0 +1,431 @@
+;; io.rkn/confirmity configuration
+{:initial-config
+ :txes [[{:db/ident :piecename/red-soldier}
+				 {:db/ident :piecename/red-cannon}
+				 {:db/ident :piecename/red-chariot}
+				 {:db/ident :piecename/red-horse}
+				 {:db/ident :piecename/red-minister}
+				 {:db/ident :piecename/red-guard}
+				 {:db/ident :piecename/red-marshal}
+
+				 {:db/ident :piecename/black-private}
+				 {:db/ident :piecename/black-catapult}
+				 {:db/ident :piecename/black-chariot}
+				 {:db/ident :piecename/black-horse}
+				 {:db/ident :piecename/black-elephant}
+				 {:db/ident :piecename/black-guard}
+				 {:db/ident :piecename/black-general}
+
+				 {:db/ident :piecetype/soldier}
+				 {:db/ident :piecetype/cannon}
+				 {:db/ident :piecetype/chariot}
+				 {:db/ident :piecetype/horse}
+				 {:db/ident :piecetype/elephant}
+				 {:db/ident :piecetype/guard}
+				 {:db/ident :piecetype/general}
+
+				 {:db/ident :player/red}
+				 {:db/ident :player/black}
+
+				 {:db/ident :location/a0}
+				 {:db/ident :location/a1}
+				 {:db/ident :location/a2}
+				 {:db/ident :location/a3}
+				 {:db/ident :location/a4}
+				 {:db/ident :location/a5}
+				 {:db/ident :location/a6}
+				 {:db/ident :location/a7}
+				 {:db/ident :location/a8}
+
+				 {:db/ident :location/b0}
+				 {:db/ident :location/b1}
+				 {:db/ident :location/b2}
+				 {:db/ident :location/b3}
+				 {:db/ident :location/b4}
+				 {:db/ident :location/b5}
+				 {:db/ident :location/b6}
+				 {:db/ident :location/b7}
+				 {:db/ident :location/b8}
+
+				 {:db/ident :location/c0}
+				 {:db/ident :location/c1}
+				 {:db/ident :location/c2}
+				 {:db/ident :location/c3}
+				 {:db/ident :location/c4}
+				 {:db/ident :location/c5}
+				 {:db/ident :location/c6}
+				 {:db/ident :location/c7}
+				 {:db/ident :location/c8}
+
+				 {:db/ident :location/d0}
+				 {:db/ident :location/d1}
+				 {:db/ident :location/d2}
+				 {:db/ident :location/d3}
+				 {:db/ident :location/d4}
+				 {:db/ident :location/d5}
+				 {:db/ident :location/d6}
+				 {:db/ident :location/d7}
+				 {:db/ident :location/d8}
+
+				 {:db/ident :location/e0}
+				 {:db/ident :location/e1}
+				 {:db/ident :location/e2}
+				 {:db/ident :location/e3}
+				 {:db/ident :location/e4}
+				 {:db/ident :location/e5}
+				 {:db/ident :location/e6}
+				 {:db/ident :location/e7}
+				 {:db/ident :location/e8}
+
+				 {:db/ident :location/f0}
+				 {:db/ident :location/f1}
+				 {:db/ident :location/f2}
+				 {:db/ident :location/f3}
+				 {:db/ident :location/f4}
+				 {:db/ident :location/f5}
+				 {:db/ident :location/f6}
+				 {:db/ident :location/f7}
+				 {:db/ident :location/f8}
+
+				 {:db/ident :location/g0}
+				 {:db/ident :location/g1}
+				 {:db/ident :location/g2}
+				 {:db/ident :location/g3}
+				 {:db/ident :location/g4}
+				 {:db/ident :location/g5}
+				 {:db/ident :location/g6}
+				 {:db/ident :location/g7}
+				 {:db/ident :location/g8}
+
+				 {:db/ident :location/h0}
+				 {:db/ident :location/h1}
+				 {:db/ident :location/h2}
+				 {:db/ident :location/h3}
+				 {:db/ident :location/h4}
+				 {:db/ident :location/h5}
+				 {:db/ident :location/h6}
+				 {:db/ident :location/h7}
+				 {:db/ident :location/h8}
+
+				 {:db/ident :location/i0}
+				 {:db/ident :location/i1}
+				 {:db/ident :location/i2}
+				 {:db/ident :location/i3}
+				 {:db/ident :location/i4}
+				 {:db/ident :location/i5}
+				 {:db/ident :location/i6}
+				 {:db/ident :location/i7}
+				 {:db/ident :location/i8}
+
+				 {:db/ident :location/j0}
+				 {:db/ident :location/j1}
+				 {:db/ident :location/j2}
+				 {:db/ident :location/j3}
+				 {:db/ident :location/j4}
+				 {:db/ident :location/j5}
+				 {:db/ident :location/j6}
+				 {:db/ident :location/j7}
+				 {:db/ident :location/j8}
+
+				 {:db/ident :board/starting}
+				 {:db/ident :forward/north}
+				 {:db/ident :forward/south}]
+
+				[{:db/ident :disposition/piece
+					:db/valueType :db.type/ref
+					:db/cardinality :db.cardinality/one}
+
+				 {:db/ident :disposition/location
+					:db/valueType :db.type/ref
+					:db/cardinality :db.cardinality/one}
+
+				 {:db/ident :piece/type
+					:db/valueType :db.type/ref
+					:db/cardinality :db.cardinality/one}
+
+				 {:db/ident :piece/player
+					:db/valueType :db.type/ref
+					:db/cardinality :db.cardinality/one}
+
+				 {:db/ident :location/player
+					:db/valueType :db.type/ref
+					:db/cardinality :db.cardinality/one}
+
+				 {:db/ident :location/palace
+					:db/valueType :db.type/boolean
+					:db/cardinality :db.cardinality/one}
+
+				 {:db/ident :location/x
+					:db/valueType :db.type/long
+					:db/cardinality :db.cardinality/one}
+
+				 {:db/ident :location/y
+					:db/valueType :db.type/long
+					:db/cardinality :db.cardinality/one}
+
+				 {:db/ident :location/north
+					:db/valueType :db.type/ref
+					:db/cardinality :db.cardinality/one}
+				 {:db/ident :location/south
+					:db/valueType :db.type/ref
+					:db/cardinality :db.cardinality/one}
+				 {:db/ident :location/east
+					:db/valueType :db.type/ref
+					:db/cardinality :db.cardinality/one}
+				 {:db/ident :location/west
+					:db/valueType :db.type/ref
+					:db/cardinality :db.cardinality/one}
+				 {:db/ident :player/forward
+					:db/valueType :db.type/ref
+					:db/cardinality :db.cardinality/one}
+
+				 {:db/ident :board/disposition
+					:db/valueType :db.type/ref
+					:db/isComponent true
+					:db/cardinality :db.cardinality/many}
+
+				 {:db/ident :board/next-player
+					:db/valueType :db.type/ref
+					:db/cardinality :db.cardinality/one}
+
+				 {:db/ident :board/ident
+					:db/valueType :db.type/bigint
+					:db/unique :db.unique/identity
+					:db/index true
+					:db/cardinality :db.cardinality/one
+					:db/doc "uniquely describes the board layout in one bigint"}
+
+				 {:db/ident :board/legal-moves
+					:db/valueType :db.type/ref
+					:db/isComponent true
+					:db/cardinality :db.cardinality/many}
+
+				 {:db/ident :board/moves-computed?
+					:db/valueType :db.type/boolean
+					:db/cardinality :db.cardinality/one}
+
+				 {:db/ident :board/canonical-move-in
+					:db/valueType :db.type/ref
+					:db/cardinality :db.cardinality/one}
+
+				 {:db/ident :board/checkmated
+					:db/valueType :db.type/ref
+					:db/cardinality :db.cardinality/one}
+
+				 {:db/ident :move/start-board
+					:db/valueType :db.type/ref
+					:db/cardinality :db.cardinality/one}
+
+				 {:db/ident :move/end-board
+					:db/valueType :db.type/ref
+					:db/cardinality :db.cardinality/one}
+
+				 {:db/ident :move/piece-moved
+					:db/valueType :db.type/ref
+					:db/cardinality :db.cardinality/one}
+
+				 {:db/ident :move/piece-taken
+					:db/valueType :db.type/ref
+					:db/cardinality :db.cardinality/one}
+
+				 {:db/ident :move/start-location
+					:db/valueType :db.type/ref
+					:db/cardinality :db.cardinality/one}
+
+				 {:db/ident :move/end-location
+					:db/valueType :db.type/ref
+					:db/cardinality :db.cardinality/one}
+
+				 {:db/ident :game/uuid
+					:db/valueType :db.type/uuid
+					:db/cardinality :db.cardinality/one}
+
+				 {:db/ident :game/moves
+					:db/valueType :db.type/ref
+					:db/isComponent true
+					:db/cardinality :db.cardinality/many}
+				 ]
+				[{:db/id :piecename/red-soldier
+					:piece/type :piecetype/soldier
+					:piece/player :player/red}
+				 {:db/id :piecename/red-cannon
+					:piece/type :piecetype/cannon
+					:piece/player :player/red}
+				 {:db/id :piecename/red-chariot
+					:piece/type :piecetype/chariot
+					:piece/player :player/red}
+				 {:db/id :piecename/red-horse
+					:piece/type :piecetype/horse
+					:piece/player :player/red}
+				 {:db/id :piecename/red-minister
+					:piece/type :piecetype/elephant
+					:piece/player :player/red}
+				 {:db/id :piecename/red-guard
+					:piece/type :piecetype/guard
+					:piece/player :player/red}
+				 {:db/id :piecename/red-marshal
+					:piece/type :piecetype/general
+					:piece/player :player/red}
+
+				 {:db/id :piecename/black-private
+					:piece/type :piecetype/soldier
+					:piece/player :player/black}
+				 {:db/id :piecename/black-catapult
+					:piece/type :piecetype/cannon
+					:piece/player :player/black}
+				 {:db/id :piecename/black-chariot
+					:piece/type :piecetype/chariot
+					:piece/player :player/black}
+				 {:db/id :piecename/black-horse
+					:piece/type :piecetype/horse
+					:piece/player :player/black}
+				 {:db/id :piecename/black-elephant
+					:piece/type :piecetype/elephant
+					:piece/player :player/black}
+				 {:db/id :piecename/black-guard
+					:piece/type :piecetype/guard
+					:piece/player :player/black}
+				 {:db/id :piecename/black-general
+					:piece/type :piecetype/general
+					:piece/player :player/black}
+
+				 {:db/id :location/a0 :location/x 0 :location/y 0 :location/player :player/black :location/north :location/b0  :location/west :location/a1 }
+				 {:db/id :location/a1 :location/x 1 :location/y 0 :location/player :player/black :location/north :location/b1  :location/east :location/a0 :location/west :location/a2 }
+				 {:db/id :location/a2 :location/x 2 :location/y 0 :location/player :player/black :location/north :location/b2  :location/east :location/a1 :location/west :location/a3 }
+				 {:db/id :location/a3 :location/x 3 :location/y 0 :location/player :player/black :location/palace true :location/north :location/b3  :location/east :location/a2 :location/west :location/a4 }
+				 {:db/id :location/a4 :location/x 4 :location/y 0 :location/player :player/black :location/palace true :location/north :location/b4  :location/east :location/a3 :location/west :location/a5 }
+				 {:db/id :location/a5 :location/x 5 :location/y 0 :location/player :player/black :location/palace true :location/north :location/b5  :location/east :location/a4 :location/west :location/a6 }
+				 {:db/id :location/a6 :location/x 6 :location/y 0 :location/player :player/black :location/north :location/b6  :location/east :location/a5 :location/west :location/a7 }
+				 {:db/id :location/a7 :location/x 7 :location/y 0 :location/player :player/black :location/north :location/b7  :location/east :location/a6 :location/west :location/a8 }
+				 {:db/id :location/a8 :location/x 8 :location/y 0 :location/player :player/black :location/north :location/b8  :location/east :location/a7  }
+
+				 {:db/id :location/b0 :location/x 0 :location/y 1 :location/player :player/black :location/north :location/c0 :location/south :location/a0  :location/west :location/c1 }
+				 {:db/id :location/b1 :location/x 1 :location/y 1 :location/player :player/black :location/north :location/c1 :location/south :location/a1 :location/east :location/c0 :location/west :location/c2 }
+				 {:db/id :location/b2 :location/x 2 :location/y 1 :location/player :player/black :location/north :location/c2 :location/south :location/a2 :location/east :location/c1 :location/west :location/c3 }
+				 {:db/id :location/b3 :location/x 3 :location/y 1 :location/player :player/black :location/palace true :location/north :location/b3 :location/south :location/a3 :location/east :location/c2 :location/west :location/c4 }
+				 {:db/id :location/b4 :location/x 4 :location/y 1 :location/player :player/black :location/palace true :location/north :location/b4 :location/south :location/a4 :location/east :location/c3 :location/west :location/c5 }
+				 {:db/id :location/b5 :location/x 5 :location/y 1 :location/player :player/black :location/palace true :location/north :location/b5 :location/south :location/a5 :location/east :location/c4 :location/west :location/c6 }
+				 {:db/id :location/b6 :location/x 6 :location/y 1 :location/player :player/black :location/north :location/c6 :location/south :location/a6 :location/east :location/c5 :location/west :location/c7 }
+				 {:db/id :location/b7 :location/x 7 :location/y 1 :location/player :player/black :location/north :location/c7 :location/south :location/a7 :location/east :location/c6 :location/west :location/c8 }
+				 {:db/id :location/b8 :location/x 8 :location/y 1 :location/player :player/black :location/north :location/c8 :location/south :location/a8 :location/east :location/c7  }
+
+				 {:db/id :location/c0 :location/x 0 :location/y 2 :location/player :player/black :location/north :location/d0 :location/south :location/b0  :location/west :location/c1 }
+				 {:db/id :location/c1 :location/x 1 :location/y 2 :location/player :player/black :location/north :location/d1 :location/south :location/b1 :location/east :location/c0 :location/west :location/c2 }
+				 {:db/id :location/c2 :location/x 2 :location/y 2 :location/player :player/black :location/north :location/d2 :location/south :location/b2 :location/east :location/c1 :location/west :location/c3 }
+				 {:db/id :location/c3 :location/x 3 :location/y 2 :location/player :player/black :location/palace true :location/north :location/b3 :location/south :location/c3 :location/east :location/b2 :location/west :location/c4 }
+				 {:db/id :location/c4 :location/x 4 :location/y 2 :location/player :player/black :location/palace true :location/north :location/b4 :location/south :location/c4 :location/east :location/b3 :location/west :location/c5 }
+				 {:db/id :location/c5 :location/x 5 :location/y 2 :location/player :player/black :location/palace true :location/north :location/b5 :location/south :location/c5 :location/east :location/b4 :location/west :location/c6 }
+				 {:db/id :location/c6 :location/x 6 :location/y 2 :location/player :player/black :location/north :location/d6 :location/south :location/b6 :location/east :location/c5 :location/west :location/c7 }
+				 {:db/id :location/c7 :location/x 7 :location/y 2 :location/player :player/black :location/north :location/d7 :location/south :location/b7 :location/east :location/c6 :location/west :location/c8 }
+				 {:db/id :location/c8 :location/x 8 :location/y 2 :location/player :player/black :location/north :location/d8 :location/south :location/b8 :location/east :location/c7  }
+
+				 {:db/id :location/d0 :location/x 0 :location/y 3  :location/player :player/black :location/north :location/e0 :location/south :location/c0  :location/west :location/d1 }
+				 {:db/id :location/d1 :location/x 1 :location/y 3  :location/player :player/black :location/north :location/e1 :location/south :location/c1 :location/east :location/d0 :location/west :location/d2 }
+				 {:db/id :location/d2 :location/x 2 :location/y 3  :location/player :player/black :location/north :location/e2 :location/south :location/c2 :location/east :location/d1 :location/west :location/d3 }
+				 {:db/id :location/d3 :location/x 3 :location/y 3  :location/player :player/black :location/north :location/e3 :location/south :location/c3 :location/east :location/d2 :location/west :location/d4 }
+				 {:db/id :location/d4 :location/x 4 :location/y 3  :location/player :player/black :location/north :location/e4 :location/south :location/c4 :location/east :location/d3 :location/west :location/d5 }
+				 {:db/id :location/d5 :location/x 5 :location/y 3  :location/player :player/black :location/north :location/e5 :location/south :location/c5 :location/east :location/d4 :location/west :location/d6 }
+				 {:db/id :location/d6 :location/x 6 :location/y 3  :location/player :player/black :location/north :location/e6 :location/south :location/c6 :location/east :location/d5 :location/west :location/d7 }
+				 {:db/id :location/d7 :location/x 7 :location/y 3  :location/player :player/black :location/north :location/e7 :location/south :location/c7 :location/east :location/d6 :location/west :location/d8 }
+				 {:db/id :location/d8 :location/x 8 :location/y 3  :location/player :player/black :location/north :location/e8 :location/south :location/c8 :location/east :location/d7  }
+
+				 {:db/id :location/e0 :location/x 0 :location/y 4 :location/player :player/black :location/north :location/f0 :location/south :location/d0  :location/west :location/d1 }
+				 {:db/id :location/e1 :location/x 1 :location/y 4 :location/player :player/black :location/north :location/f1 :location/south :location/d1 :location/east :location/e0 :location/west :location/e2 }
+				 {:db/id :location/e2 :location/x 2 :location/y 4 :location/player :player/black :location/north :location/f2 :location/south :location/d2 :location/east :location/e1 :location/west :location/e3 }
+				 {:db/id :location/e3 :location/x 3 :location/y 4 :location/player :player/black :location/north :location/f3 :location/south :location/d3 :location/east :location/e2 :location/west :location/e4 }
+				 {:db/id :location/e4 :location/x 4 :location/y 4 :location/player :player/black :location/north :location/f4 :location/south :location/d4 :location/east :location/e3 :location/west :location/e5 }
+				 {:db/id :location/e5 :location/x 5 :location/y 4 :location/player :player/black :location/north :location/f5 :location/south :location/d5 :location/east :location/e4 :location/west :location/e6 }
+				 {:db/id :location/e6 :location/x 6 :location/y 4 :location/player :player/black :location/north :location/f6 :location/south :location/d6 :location/east :location/e5 :location/west :location/e7 }
+				 {:db/id :location/e7 :location/x 7 :location/y 4 :location/player :player/black :location/north :location/f7 :location/south :location/d7 :location/east :location/e6 :location/west :location/e8 }
+				 {:db/id :location/e8 :location/x 8 :location/y 4 :location/player :player/black :location/north :location/f8 :location/south :location/d8 :location/east :location/e7  }
+
+				 {:db/id :location/f0 :location/x 0 :location/y 5 :location/player :player/red :location/north :location/g0 :location/south :location/e0  :location/west :location/f1 }
+				 {:db/id :location/f1 :location/x 1 :location/y 5 :location/player :player/red :location/north :location/g1 :location/south :location/e1 :location/east :location/f0 :location/west :location/f2 }
+				 {:db/id :location/f2 :location/x 2 :location/y 5 :location/player :player/red :location/north :location/g2 :location/south :location/e2 :location/east :location/f1 :location/west :location/f3 }
+				 {:db/id :location/f3 :location/x 3 :location/y 5 :location/player :player/red :location/north :location/g3 :location/south :location/e3 :location/east :location/f2 :location/west :location/f4 }
+				 {:db/id :location/f4 :location/x 4 :location/y 5 :location/player :player/red :location/north :location/g4 :location/south :location/e4 :location/east :location/f3 :location/west :location/f5 }
+				 {:db/id :location/f5 :location/x 5 :location/y 5 :location/player :player/red :location/north :location/g5 :location/south :location/e5 :location/east :location/f4 :location/west :location/f6 }
+				 {:db/id :location/f6 :location/x 6 :location/y 5 :location/player :player/red :location/north :location/g6 :location/south :location/e6 :location/east :location/f5 :location/west :location/f7 }
+				 {:db/id :location/f7 :location/x 7 :location/y 5 :location/player :player/red :location/north :location/g7 :location/south :location/e7 :location/east :location/f6 :location/west :location/f8 }
+				 {:db/id :location/f8 :location/x 8 :location/y 5 :location/player :player/red :location/north :location/g8 :location/south :location/e8 :location/east :location/f7  }
+
+				 {:db/id :location/g0 :location/x 0 :location/y 6 :location/player :player/red :location/north :location/h0 :location/south :location/f0  :location/west :location/g1 }
+				 {:db/id :location/g1 :location/x 1 :location/y 6 :location/player :player/red :location/north :location/h1 :location/south :location/f1 :location/east :location/g0 :location/west :location/g2 }
+				 {:db/id :location/g2 :location/x 2 :location/y 6 :location/player :player/red :location/north :location/h2 :location/south :location/f2 :location/east :location/g1 :location/west :location/g3 }
+				 {:db/id :location/g3 :location/x 3 :location/y 6 :location/player :player/red :location/north :location/h3 :location/south :location/f3 :location/east :location/g2 :location/west :location/g4 }
+				 {:db/id :location/g4 :location/x 4 :location/y 6 :location/player :player/red :location/north :location/h4 :location/south :location/f4 :location/east :location/g3 :location/west :location/g5 }
+				 {:db/id :location/g5 :location/x 5 :location/y 6 :location/player :player/red :location/north :location/h5 :location/south :location/f5 :location/east :location/g4 :location/west :location/g6 }
+				 {:db/id :location/g6 :location/x 6 :location/y 6 :location/player :player/red :location/north :location/h6 :location/south :location/f6 :location/east :location/g5 :location/west :location/g7 }
+				 {:db/id :location/g7 :location/x 7 :location/y 6 :location/player :player/red :location/north :location/h7 :location/south :location/f7 :location/east :location/g6 :location/west :location/g8 }
+				 {:db/id :location/g8 :location/x 8 :location/y 6 :location/player :player/red :location/north :location/h8 :location/south :location/f8 :location/east :location/g7  }
+
+				 {:db/id :location/h0 :location/x 0 :location/y 7 :location/player :player/red :location/north :location/i0 :location/south :location/g0  :location/west :location/h1 }
+				 {:db/id :location/h1 :location/x 1 :location/y 7 :location/player :player/red :location/north :location/i1 :location/south :location/g1 :location/east :location/h0 :location/west :location/h2 }
+				 {:db/id :location/h2 :location/x 2 :location/y 7 :location/player :player/red :location/north :location/i2 :location/south :location/g2 :location/east :location/h1 :location/west :location/h3 }
+				 {:db/id :location/h3 :location/x 3 :location/y 7 :location/player :player/red :location/palace true :location/north :location/i3 :location/south :location/g3 :location/east :location/h2 :location/west :location/h4 }
+				 {:db/id :location/h4 :location/x 4 :location/y 7 :location/player :player/red :location/palace true :location/north :location/i4 :location/south :location/g4 :location/east :location/h3 :location/west :location/h5 }
+				 {:db/id :location/h5 :location/x 5 :location/y 7 :location/player :player/red :location/palace true :location/north :location/i5 :location/south :location/g5 :location/east :location/h4 :location/west :location/h6 }
+				 {:db/id :location/h6 :location/x 6 :location/y 7 :location/player :player/red :location/north :location/i6 :location/south :location/g6 :location/east :location/h5 :location/west :location/h7 }
+				 {:db/id :location/h7 :location/x 7 :location/y 7 :location/player :player/red :location/north :location/i7 :location/south :location/g7 :location/east :location/h6 :location/west :location/h8 }
+				 {:db/id :location/h8 :location/x 8 :location/y 7 :location/player :player/red :location/north :location/i8 :location/south :location/g8 :location/east :location/h7  }
+
+				 {:db/id :location/i0 :location/x 0 :location/y 8 :location/player :player/red :location/north :location/j0 :location/south :location/h0  :location/west :location/i1 }
+				 {:db/id :location/i1 :location/x 1 :location/y 8 :location/player :player/red :location/north :location/j1 :location/south :location/h1 :location/east :location/i0 :location/west :location/i2 }
+				 {:db/id :location/i2 :location/x 2 :location/y 8 :location/player :player/red :location/north :location/j2 :location/south :location/h2 :location/east :location/i1 :location/west :location/i3 }
+				 {:db/id :location/i3 :location/x 3 :location/y 8 :location/player :player/red :location/palace true :location/north :location/j3 :location/south :location/h3 :location/east :location/i2 :location/west :location/i4 }
+				 {:db/id :location/i4 :location/x 4 :location/y 8 :location/player :player/red :location/palace true :location/north :location/j4 :location/south :location/h4 :location/east :location/i3 :location/west :location/i5 }
+				 {:db/id :location/i5 :location/x 5 :location/y 8 :location/player :player/red :location/palace true :location/north :location/j5 :location/south :location/h5 :location/east :location/i4 :location/west :location/i6 }
+				 {:db/id :location/i6 :location/x 6 :location/y 8 :location/player :player/red :location/north :location/j6 :location/south :location/h6 :location/east :location/i5 :location/west :location/i7 }
+				 {:db/id :location/i7 :location/x 7 :location/y 8 :location/player :player/red :location/north :location/j7 :location/south :location/h7 :location/east :location/i6 :location/west :location/i8 }
+				 {:db/id :location/i8 :location/x 8 :location/y 8 :location/player :player/red :location/north :location/j8 :location/south :location/h8 :location/east :location/i7  }
+
+				 {:db/id :location/j0 :location/x 0 :location/y 9 :location/player :player/red  :location/south :location/i0  :location/west :location/h1 }
+				 {:db/id :location/j1 :location/x 1 :location/y 9 :location/player :player/red  :location/south :location/i1 :location/east :location/h0 :location/west :location/h2 }
+				 {:db/id :location/j2 :location/x 2 :location/y 9 :location/player :player/red  :location/south :location/i2 :location/east :location/h1 :location/west :location/h3 }
+				 {:db/id :location/j3 :location/x 3 :location/y 9 :location/player :player/red  :location/palace true :location/south :location/i3 :location/east :location/h2 :location/west :location/h4 }
+				 {:db/id :location/j4 :location/x 4 :location/y 9 :location/player :player/red  :location/palace true :location/south :location/i4 :location/east :location/h3 :location/west :location/h5 }
+				 {:db/id :location/j5 :location/x 5 :location/y 9 :location/player :player/red  :location/palace true :location/south :location/i5 :location/east :location/h4 :location/west :location/h6 }
+				 {:db/id :location/j6 :location/x 6 :location/y 9 :location/player :player/red  :location/south :location/i6 :location/east :location/h5 :location/west :location/h7 }
+				 {:db/id :location/j7 :location/x 7 :location/y 9 :location/player :player/red  :location/south :location/i7 :location/east :location/h6 :location/west :location/h8 }
+				 {:db/id :location/j8 :location/x 8 :location/y 9 :location/player :player/red  :location/south :location/i8 :location/east :location/h7  }
+
+				 {:db/id :board/starting
+					:board/next-player :player/red
+					:board/moves-computed? false
+					:board/ident 1519411712542735201524319614311121692006343619150028730333557384145N
+					:board/disposition 
+					[{:disposition/piece :piecename/red-soldier :disposition/location :location/g0}
+					 {:disposition/piece :piecename/red-soldier :disposition/location :location/g2}
+					 {:disposition/piece :piecename/red-soldier :disposition/location :location/g4}
+					 {:disposition/piece :piecename/red-soldier :disposition/location :location/g6}
+					 {:disposition/piece :piecename/red-soldier :disposition/location :location/g8}
+					 {:disposition/piece :piecename/red-cannon :disposition/location :location/h1}
+					 {:disposition/piece :piecename/red-cannon :disposition/location :location/h7}
+					 {:disposition/piece :piecename/red-chariot :disposition/location :location/j0}
+					 {:disposition/piece :piecename/red-horse :disposition/location :location/j1}
+					 {:disposition/piece :piecename/red-minister :disposition/location :location/j2}
+					 {:disposition/piece :piecename/red-guard :disposition/location :location/j3}
+					 {:disposition/piece :piecename/red-marshal :disposition/location :location/j4}
+					 {:disposition/piece :piecename/red-guard :disposition/location :location/j5}
+					 {:disposition/piece :piecename/red-minister :disposition/location :location/j6}
+					 {:disposition/piece :piecename/red-horse :disposition/location :location/j7}
+					 {:disposition/piece :piecename/red-chariot :disposition/location :location/j8}
+
+					 {:disposition/piece :piecename/black-private :disposition/location :location/d0}
+					 {:disposition/piece :piecename/black-private :disposition/location :location/d2}
+					 {:disposition/piece :piecename/black-private :disposition/location :location/d4}
+					 {:disposition/piece :piecename/black-private :disposition/location :location/d6}
+					 {:disposition/piece :piecename/black-private :disposition/location :location/d8}
+					 {:disposition/piece :piecename/black-catapult :disposition/location :location/c1}
+					 {:disposition/piece :piecename/black-catapult :disposition/location :location/c7}
+					 {:disposition/piece :piecename/black-chariot :disposition/location :location/a0}
+					 {:disposition/piece :piecename/black-horse :disposition/location :location/a1}
+					 {:disposition/piece :piecename/black-elephant :disposition/location :location/a2}
+					 {:disposition/piece :piecename/black-guard :disposition/location :location/a3}
+					 {:disposition/piece :piecename/black-general :disposition/location :location/a4}
+					 {:disposition/piece :piecename/black-guard :disposition/location :location/a5}
+					 {:disposition/piece :piecename/black-elephant :disposition/location :location/a6}
+					 {:disposition/piece :piecename/black-horse :disposition/location :location/a7}
+					 {:disposition/piece :piecename/black-chariot :disposition/location :location/a8}]}
+				 ]]
+ }

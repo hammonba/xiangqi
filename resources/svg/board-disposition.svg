@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<svg id="board" viewBox="0 0 1024 1024"
+     xmlns="http://www.w3.org/2000/svg">
+    <style type="text/css">
+        .red-player {fill: red; stroke:red}
+        .black-player {fill: black; stroke:black}
+        .counter {fill: #F4D03F}
+        .open-move {fill-opacity: 0.5}
+        .close-move {stroke-width: 0.2; stroke-opacity: 0.5; fill-opacity: 0.5}
+    </style>
+    <g transform="scale(100,100) translate(0.5,0.5)" stroke-width="0.03"
+       stroke="black">
+        <use href="board-templates.svg#board"/>
+        <g id="red-pieces" class="red-player">
+            <g id="red-soldiers">
+                <use x="0" y="6" href="board-templates.svg#red-soldier"/>
+                <use x="2" y="6" href="board-templates.svg#red-soldier"/>
+                <use x="4" y="6" href="board-templates.svg#red-soldier"/>
+                <use x="6" y="6" href="board-templates.svg#red-soldier"/>
+                <use x="8" y="6" href="board-templates.svg#red-soldier"/>
+            </g>
+            <g id="red-cannons">
+                <use x="1" y="7" href="board-templates.svg#red-cannon"/>
+                <use x="7" y="7" href="board-templates.svg#red-cannon"/>
+            </g>
+            <g id="red-chariots">
+                <use x="0" y="9" href="board-templates.svg#chariot-red"/>
+                <use x="8" y="9" href="board-templates.svg#chariot-red"/>
+            </g>
+            <g id="red-horses">
+                <use x="1" y="9" href="board-templates.svg#red-horse"/>
+                <use x="7" y="9" href="board-templates.svg#red-horse"/>
+            </g>
+            <g id="red-ministers">
+                <use x="2" y="9" href="board-templates.svg#red-minister"/>
+                <use x="6" y="9" href="board-templates.svg#red-minister"/>
+            </g>
+            <g id="red-guards">
+                <use x="3" y="9" href="board-templates.svg#red-guard"/>
+                <use x="5" y="9" href="board-templates.svg#red-guard"/>
+            </g>
+            <use id="red-marshal" x="4" y="9"
+                 href="board-templates.svg#red-marshal"/>
+        </g>
+        <g id="black-pieces" class="black-player">
+            <g id="black-privates">
+                <use x="0" y="3" href="board-templates.svg#black-private"/>
+                <use x="2" y="3" href="board-templates.svg#black-private"/>
+                <use x="4" y="3" href="board-templates.svg#black-private"/>
+                <use x="6" y="3" href="board-templates.svg#black-private"/>
+                <use x="8" y="3" href="board-templates.svg#black-private"/>
+            </g>
+            <g id="black-catapults">
+                <use x="1" y="2" href="board-templates.svg#black-catapult"/>
+                <use x="7" y="2" href="board-templates.svg#black-catapult"/>
+            </g>
+            <g id="black-chariots">
+                <use x="0" y="0" href="board-templates.svg#black-chariot"/>
+                <use x="8" y="0" href="board-templates.svg#black-chariot"/>
+            </g>
+            <g id="black-horses">
+                <use x="1" y="0" href="board-templates.svg#black-horse"/>
+                <use x="7" y="0" href="board-templates.svg#black-horse"/>
+            </g>
+            <g id="black-elephants">
+                <use x="2" y="0" href="board-templates.svg#black-elephant"/>
+                <use x="6" y="0" href="board-templates.svg#black-elephant"/>
+            </g>
+            <g id="black-guards">
+                <use x="3" y="0" href="board-templates.svg#black-guard"/>
+                <use x="5" y="0" href="board-templates.svg#black-guard"/>
+            </g>
+            <use id="black-general" x="4" y="0"
+                 href="board-templates.svg#black-general"></use>
+        </g>
+    </g>
+</svg>
