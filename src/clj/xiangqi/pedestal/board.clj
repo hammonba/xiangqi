@@ -5,8 +5,8 @@
             [medley.core :as medley]
             [ring.middleware.content-type]
             [ring.util.response :as ring-resp]
-            [xiangqi.bit-utils :as bit-utils]
-            [xiangqi.board-ident :as board-ident]
+            [xiangqi.board.bit-utils :as bit-utils]
+            [xiangqi.board.board-ident :as board-ident]
             [xiangqi.board-layout :as board-layout]
             [xiangqi.board-service :as board-service]
             [xiangqi.utils :as utils]))
@@ -38,7 +38,7 @@
   (when opened-move
     (= opened-move location)))
 
-(defn place-pieces2
+(defn place-pieces
   [{:board/keys [disposition ident]} opened-move]
   (board-layout/layout-pieces
     {:openmove-fn #(open-move ident %1 %2)
@@ -51,7 +51,7 @@
 (defn layout-board
   [{:board/keys [opened-move] :as board-data}]
   (->>
-    (place-pieces2 board-data opened-move)
+    (place-pieces board-data opened-move)
     (board-layout/board-hiccup board-data)))
 
 (defn find-opened-move

@@ -1,4 +1,4 @@
-(ns xiangqi.bit-utils)
+(ns xiangqi.board.bit-utils)
 
 (defn bigint-bitshift-left
   "like bit-shift-left but for bigint."

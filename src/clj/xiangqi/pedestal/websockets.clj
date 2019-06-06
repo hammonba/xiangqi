@@ -17,10 +17,7 @@
 
 (defn on-text
   [sendch msg]
-  (log/info :msg (class msg))
-  (log/info :msg (clojure.edn/read-string msg))
   (when-let [msg (websocket-ontext sendch (clojure.edn/read-string msg))]
-    (clojure.pprint/pprint msg)
     (sendmsg-async sendch msg)))
 
 (defn on-binary

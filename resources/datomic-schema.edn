@@ -251,15 +251,6 @@
 					 :db/valueType :db.type/boolean
 					 :db/cardinality :db.cardinality/one
 					 :db/doc "illegal due to flying general?"}
-
-					{:db/ident :game/uuid
-					 :db/valueType :db.type/uuid
-					 :db/cardinality :db.cardinality/one}
-
-					{:db/ident :game/moves
-					 :db/valueType :db.type/ref
-					 :db/isComponent true
-					 :db/cardinality :db.cardinality/many}
 					]
 				 [{:db/id :piecename/red-soldier
 					 :piece/type :piecetype/soldier
@@ -396,5 +387,45 @@
 					{:location/y 8, :location/x 8, :location/north :location/i8, :location/player :player/black, :location/south :location/i10, :db/id :location/i9, :location/east :location/h9}
 					{:location/y 9, :location/x 8, :location/north :location/i9, :location/player :player/black, :db/id :location/i10, :location/east :location/h10}
 					]
-				 [[:db/add :board/starting :board/ident-218 133533018309899709564525504784527298902009500465768741687617263177N]]]}
+				 [[:db/add :board/starting :board/ident-218 133533018309899709564525504784527298902009500465768741687617263177N]]
+
+				 [{:db/ident :user/uuid
+					 :db/valueType :db.type/uuid
+					 :db/cardinality :db.cardinality/one}
+
+					{:db/ident :game/uuid
+					 :db/valueType :db.type/uuid
+					 :db/cardinality :db.cardinality/one}
+
+					{:db/ident :game/ordered-moves
+					 :db/valueType :db.type/ref
+					 :db/isComponent true
+					 :db/cardinality :db.cardinality/many}
+
+					{:db/ident :outcome/red-checkmated}
+					{:db/ident :outcome/black-checkmated}
+					{:db/ident :outcome/red-resigned}
+					{:db/ident :outcome/black-resigned}
+
+					{:db/ident :game/outcome
+					 :db/valueType :db.type/ref
+					 :db/cardinality :db.cardinality/one}
+
+					{:db/ident :game/red-players
+					 :db/valueType :db.type/ref
+					 :db/cardinality :db.cardinality/many}
+
+					{:db/ident :game/black-players
+					 :db/valueType :db.type/ref
+					 :db/cardinality :db.cardinality/many}
+
+					{:db/ident :ordered-move/order
+					 :db/valueType :db.type/long
+					 :db/cardinality :db.cardinality/one}
+
+					{:db/ident :ordered-move/move
+					 :db/valueType :db.type/ref
+					 :db/cardinality :db.cardinality/one}
+
+					]]}
  }

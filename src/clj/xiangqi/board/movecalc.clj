@@ -1,10 +1,8 @@
-(ns xiangqi.movecalc
+(ns xiangqi.board.movecalc
   "the only public function is compute-and-generate-next-moves"
   (:require [medley.core :as medley]
             [xiangqi.board-utils :as board-utils]
-            [xiangqi.board-utils :as boardutils]
-            [xiangqi.board-ident :as board-ident]
-            [xiangqi.board-ident :as bi]))
+            [xiangqi.board.board-ident :as board-ident]))
 
 (defn coords-from-location
   [{:location/keys [x y]}]
@@ -82,8 +80,8 @@
 (defn are-generals-facing?
   "test whether generals are in the same rank with no intermediate pieces"
   [disp-mtx]
-  (let [red-general (boardutils/find-general disp-mtx :player/red)
-        black-general (boardutils/find-general disp-mtx :player/black)]
+  (let [red-general (board-utils/find-general disp-mtx :player/red)
+        black-general (board-utils/find-general disp-mtx :player/black)]
     (when (= (:location/x red-general) (:location/x black-general))
       (->> (file disp-mtx black-general)
         (map #(remove board-utils/unoccupied-loc? %))
@@ -105,7 +103,7 @@
 (defn is-move-check?
   "would this move put us into check?"
   [disp-mtx our-player]
-  (let [our-general-loc (:disposition/location (boardutils/find-general disp-mtx our-player))]
+  (let [our-general-loc (:disposition/location (board-utils/find-general disp-mtx our-player))]
     (reduce
       (fn [_ disp-loc]
           (when (contains?
@@ -113,7 +111,7 @@
                   our-general-loc)
             (reduced disp-loc)))
       nil
-      (boardutils/pieces-for-player (boardutils/opponent our-player) (flatten disp-mtx)))))
+      (board-utils/pieces-for-player (board-utils/opponent our-player) (flatten disp-mtx)))))
 
 (defn apply-boardlevel-movetest
   "would this move put us into check?
@@ -121,7 +119,7 @@
    both should be avoided"
   [disp-mtx {:move/keys [piece-moved] :as move}]
   (let [mtx-next (apply-move-to-disposition disp-mtx move)
-        checked-by (:disposition/location (is-move-check? mtx-next (boardutils/piece->owner piece-moved)))
+        checked-by (:disposition/location (is-move-check? mtx-next (board-utils/piece->owner piece-moved)))
         flying-general? (are-generals-facing? mtx-next)
         moving-player (board-utils/piece->owner piece-moved)
         illegal? (cond
@@ -134,7 +132,7 @@
       :move/illegal? illegal?
       :move/end-board (when-not illegal?
                         (board-ident/encode-boardident-218
-                          {:board/player (boardutils/opponent moving-player)
+                          {:board/player (board-utils/opponent moving-player)
                            :board/disp-mtx mtx-next})))))
 
 (defn generate-moves-for-piece
@@ -162,8 +160,8 @@
   (sequence
     (comp
       (keep #(seq (generate-moves-for-piece dl %)))
-      (boardutils/nesting-map #(apply-boardlevel-movetest disp-mtx %))
-      (boardutils/nesting-map #(assoc % :move/start-board ident)))
+      (board-utils/nesting-map #(apply-boardlevel-movetest disp-mtx %))
+      (board-utils/nesting-map #(assoc % :move/start-board ident)))
     (movelocs-for-piece disp-mtx dl)))
 
 (def soldieradvance-fn
@@ -215,27 +213,27 @@
 
 (defmethod movelocs-for-piece :piecetype/elephant
   [disp-mtx disploc]
-  (let [us (boardutils/disploc-pieceowner disploc)]
+  (let [us (board-utils/disploc-pieceowner disploc)]
     (map list
-      (filter #(= us (boardutils/disploc-locationowner %))
+      (filter #(= us (board-utils/disploc-locationowner %))
         (double-diagonals disp-mtx disploc)))))
 
 (defmethod movelocs-for-piece :piecetype/guard
   [disp-mtx disploc]
   (->> (single-diagonals disp-mtx disploc)
-    (filter (comp boardutils/location-ispalace :disposition/location))
+    (filter (comp board-utils/location-ispalace :disposition/location))
     (map list)))
 
 (defmethod movelocs-for-piece :piecetype/general
   [disp-mtx disploc]
   (->> (single-cross disp-mtx disploc)
-    (filter (comp boardutils/location-ispalace :disposition/location))
+    (filter (comp board-utils/location-ispalace :disposition/location))
     (map list)))
 
 (defn compute-and-generate-next-moves
   "main entry point to compute next moves "
   [{:board/keys [player disp-vec] :as board}]
-  (let [board (bi/add-dispmtx board)]
+  (let [board (board-ident/add-dispmtx board)]
     (into []
       (map #(compute-and-generate-moves-for-piece board %))
-      (boardutils/pieces-for-player player disp-vec))))
+      (board-utils/pieces-for-player player disp-vec))))

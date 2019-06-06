@@ -1,7 +1,7 @@
-(ns xiangqi.board-ident
+(ns xiangqi.board.board-ident
   (:require [clojure.set]
             [medley.core :as medley]
-            [xiangqi.bit-utils :as bitutils]
+            [xiangqi.board.bit-utils :as bitutils]
             [xiangqi.board-utils :as boardutils]))
 
 

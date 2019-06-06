@@ -2,10 +2,11 @@
   (:require [datomic.client.api :as dca]
             [medley.core :as medley]
             [xiangqi.board-utils :as boardutils]
-            [clojure.set :as set]
             [xiangqi.utils :as utils]
-            [xiangqi.board-ident :as bi]
-            [xiangqi.movecalc :as movecalc]))
+            [xiangqi.board.board-ident :as board-ident
+             :only [decode-boardident-218 ordered-locs]]
+            [xiangqi.board.movecalc :as movecalc
+             :only [compute-and-generate-next-moves]]))
 
 (defn boardident218-lookupref
   [ident]
@@ -66,7 +67,7 @@
 
 (defn board-nextmove-txes
   [boardident-218]
-  (let [board (bi/decode-boardident-218 boardident-218)]
+  (let [board (board-ident/decode-boardident-218 boardident-218)]
     (->> board
       movecalc/compute-and-generate-next-moves
       (build-move-txes board))))
@@ -77,7 +78,7 @@
     (board-nextmove-txes boardident-218)
     (transact-tx-matrix conn)))
 
-(defn query-board
+#_(defn query-board
   [db board-ident]
   (dca/pull db '[*
                  {:board/winner [:db/ident]}
@@ -122,7 +123,7 @@
           (dca/db conn)
           (boardident218-lookupref board-ident))))))
 
-(defn collapse-with
+#_(defn collapse-with
   "we get alot of single-entry :db/ident maps. collapse them here"
   [mm f ks]
   (persistent!
@@ -133,7 +134,7 @@
       (transient mm)
       ks)))
 
-(defn transform-movemap
+#_(defn transform-movemap
   [mm]
   (-> mm
     (collapse-with :db/ident [:move/piece-moved :move/piece-taken ])
@@ -145,13 +146,7 @@
                     (sort-by :move/ordering)
                     (mapv (comp #(dissoc % :move/ordering) transform-movemap))))))))
 
-#_(defn query-and-transform-movemap
-  [db board-ident]
-  (sequence
-    (boardutils/nesting-map transform-movemap)
-    (query-moves-for-board db board-ident)))
-
-(defn query-startlocs-for-board
+#_(defn query-startlocs-for-board
   [db board-ident]
   (dca/q {:query
           '[:find (pull ?sb [{:move/start-location [:db/ident :location/x :location/y]}])
@@ -159,7 +154,7 @@
             :where [?sb :move/start-board] [?sb :move/aggregation]]
           :args [db board-ident]}))
 
-(defn transform-startlocs
+#_(defn transform-startlocs
   [startlocs]
   (into #{}
     (comp cat
@@ -168,7 +163,7 @@
       (map utils/strip-all-namespaces))
     startlocs))
 
-(defn query-and-transform-startlocs
+#_(defn query-and-transform-startlocs
   [db board-ident]
   (transform-startlocs (query-startlocs-for-board db board-ident)))
 
@@ -199,7 +194,7 @@
           (-> m
             (assoc-in [start-location :board/ident] ident)
             (update-in [start-location :end-locations] utils/conj-vec v)))
-      (fn [m] (mapv m bi/ordered-locs)))
+      (fn [m] (mapv m board-ident/ordered-locs)))
     (cond-> (utils/zip-by :disposition/location disp-vec)
       opened-move (update opened-move assoc :opened-move true))
     moves))

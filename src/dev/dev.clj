@@ -2,9 +2,9 @@
   (:require [io.pedestal.http]
             [xiangqi.datomic.client :as dc]
             [xiangqi.datomic.tx-moves :as xtx]
-            [xiangqi.board-ident :as bi]
+            [xiangqi.board.board-ident :as bi]
             [xiangqi.board-utils :as bu]
-            [xiangqi.movecalc :as mc]
+            [xiangqi.board.movecalc :as mc]
             [xiangqi.pedestal.server :as xiangqi-server]
             [xiangqi.board-service]))
 
