@@ -52,13 +52,20 @@
   [{:board/keys [opened-move] :as board-data}]
   (->>
     (place-pieces board-data opened-move)
-    (board-layout/board-hiccup board-data)))
+    (board-layout/board-hiccup board-data)
+    (vector :svg {:xmlns "http://www.w3.org/2000/svg" :version "1.1" :viewBox "0 0 10 12"})))
 
 (defn find-opened-move
   [{:board/keys [disp-vec opened-move-location] :as board} ]
   (medley/assoc-some board
     :board/opened-move
     (first (filter #(= opened-move-location (:disposition/location %)) disp-vec))))
+
+(defn add-enclosing-html
+  [& body]
+  [:html
+   [:head [:link {:href "/css/style.css" :rel "stylesheet" :type "text/css"}]]
+   (into [:body] body)])
 
 (defn board-interceptor
   [request]
@@ -70,6 +77,7 @@
     (assoc :board/opened-move-location (get-openedmove request))
     find-opened-move
     layout-board
+    add-enclosing-html
     hiccup/html
     ring-resp/response
     (ring-resp/content-type "text/html")))

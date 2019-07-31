@@ -69,6 +69,23 @@
 
 (defn board-hiccup
   [{:board/keys [player]} laidout-pieces]
+  [:g {:viewBox "0 0 9 10" :preserveAspectRatio "xMidYMid meet"}
+   [:g {:transform "translate(0.5,0.5)"}
+    [:g {:id "boundary" :class (boundary-class player)}
+     [:rect {:x -0.2 :y -0.2 :width 8.4 :height 0.2}]
+     [:rect {:x -0.2 :y -0.2 :width 0.2 :height 4.2}]
+     [:rect {:x -0.2 :y 5 :width 0.2 :height 4.2}]
+     [:rect {:x -0.2 :y 9 :width 8.4 :height 0.2}]
+     [:rect {:x 8 :y -0.2 :width 0.2 :height 4.2}]
+     [:rect {:x 8 :y 5 :width 0.2 :height 4.2}]]
+    [:g {:class "board"}
+     [:use {:href "/board.svg#board"}]]
+    laidout-pieces
+    ]])
+
+
+#_(defn board-hiccup-fullhtml
+  [{:board/keys [player]} laidout-pieces]
   [:html
    [:head
     [:link {:rel "stylesheet" :href "/css/style.css"}]]

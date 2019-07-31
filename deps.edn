@@ -17,7 +17,7 @@
 
 				medley {:mvn/version "1.2.0"}
 				org.clojure/core.async {:mvn/version "0.4.490"}
-				org.clojure/clojure {:mvn/version "1.10.0"}
+				org.clojure/clojure {:mvn/version "1.10.1"}
 				org.clojure/clojurescript {:mvn/version "1.10.520"}
 				org.clojure/spec.alpha {:mvn/version "0.2.176"}
 
@@ -25,6 +25,8 @@
 				com.bhauman/rebel-readline-cljs {:mvn/version "0.1.4"}
 				com.bhauman/figwheel-main {:mvn/version "0.2.0"}
 				funcool/bide {:mvn/version "1.6.0"}
+
+				cljs-react-material-ui {:local/root "../../cljs/cljs-react-material-ui"}
 
 				ring/ring-codec {:mvn/version "1.1.2"}
 				buddy {:mvn/version "2.0.0"}

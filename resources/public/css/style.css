@@ -21,3 +21,25 @@ svg { position:absolute; top:0%; left:0%; height:100%; width:100% }
 
 #open-moves {}
 #pieces {}
+
+.container
+{
+    position:relative;
+    width:30%;/*half the width of the whole page*/
+    margin:auto;/*center the whole thing*/
+    border-colour: black;
+    border-width:  5px;
+}
+.relative_container {
+    padding-bottom: 50%;
+    position: relative;
+    float: left;
+    width: 100%;
+    height: 100%;
+    border-color: black;
+    border-width: 2px;
+}
+
+span {
+    display: inline-block;
+}

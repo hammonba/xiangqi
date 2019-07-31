@@ -44,7 +44,8 @@
   [{opened-move ::opened-move :as state} reconciler & args]
   (let [{:keys [disposition] :as board-state}
         (rum/react (citrus/subscription reconciler [:board-controller]))]
-    [:div
-     (board-layout/board-hiccup
-       board-state
-       (place-pieces reconciler disposition opened-move))]))
+    #_[:svg {:xmlns "http://www.w3.org/2000/svg" :version "1.1"
+           :viewBox "0 0 10 10"}]
+    (board-layout/board-hiccup
+      board-state
+      (place-pieces reconciler disposition opened-move))))

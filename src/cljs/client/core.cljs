@@ -7,6 +7,7 @@
    [haslett.client :as ws]
    [haslett.format :as fmt]
    [client.board-view :as board-view]
+   [client.root-view :as root-view]
    [client.effects :as effects]
    [client.router :as router]
    [client.board-controller :as board-controller]
@@ -47,7 +48,7 @@
 
 (rum/defc app-component []
   [:div
-   (board-view/board-disposition
+   (root-view/root
      reconciler)
    ])
 
