@@ -27,6 +27,17 @@
 				funcool/bide {:mvn/version "1.6.0"}
 
 				cljs-react-material-ui {:local/root "../../cljs/cljs-react-material-ui"}
+				cljs-bean {:mvn/version "1.5.0"}
+
+				uix.core {:git/url "https://github.com/roman01la/uix.git"
+										 :deps/root "core"
+										 :sha "53f26f5facbac11da55bf0445752c00fbcb7ef44"}
+				uix.dom {:git/url "https://github.com/roman01la/uix.git"
+								 :deps/root "dom"
+								 :sha "53f26f5facbac11da55bf0445752c00fbcb7ef44"}
+				uix.rn {:git/url "https://github.com/roman01la/uix.git"
+								:deps/root "rn"
+								:sha "53f26f5facbac11da55bf0445752c00fbcb7ef44"}
 
 				ring/ring-codec {:mvn/version "1.1.2"}
 				buddy {:mvn/version "2.0.0"}

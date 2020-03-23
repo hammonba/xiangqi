@@ -397,9 +397,20 @@
 					 :db/valueType :db.type/uuid
 					 :db/cardinality :db.cardinality/one}
 
+					{:db/ident :game/move-count
+					 :db/valueType :db.type/integer
+					 :db/doc "the number of moves made in this game"
+					 :db/cardinality :db.cardinality/one}
+
+					{:db/ident :game/current-board
+					 :db/valueTyne :db.type/ref
+					 :db/dob "the current state of the board"
+					 :db/cardinality :db.cardinality/one}
+
 					{:db/ident :game/ordered-moves
 					 :db/valueType :db.type/ref
 					 :db/isComponent true
+					 :db/doc "collection of all the moves made in this game so far"
 					 :db/cardinality :db.cardinality/many}
 
 					{:db/ident :outcome/red-checkmated}
@@ -409,6 +420,7 @@
 
 					{:db/ident :game/outcome
 					 :db/valueType :db.type/ref
+					 :db/doc "when set, this game is finished"
 					 :db/cardinality :db.cardinality/one}
 
 					{:db/ident :game/red-players

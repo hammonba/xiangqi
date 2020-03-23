@@ -1,0 +1,67 @@
+Game Management
+===============
+:Author: BenH
+:Date: 4th Aug 2019
+
+= To create a game =
+To create a game you need to specify
+
+- starting board
+or
+- starting game
+
+The games's creator has special privilege since they may create
+anonymous invite tokens as well as inviting named users or groups
+
+It should be possible to revoke anonymous invites and force a reissue
+
+
+= To join a game =
+
+== As anonymous user
+If you are an anonymous user,
+then you click on an invite URL.
+This will register your cookie as entitled to apply moves to that game
+
+== As logged in user
+A logged in user may be invited personally,
+or as part of a group that they belong to.
+
+Once a user has responded to an invite,
+noone else may apply moves for that colour/game
+unless user invites them
+
+= To form a clan
+Anyone may form a clan
+The clan owner may invite individuals or other groups
+The clan owner may designate other users as co-owners
+Group owner may exclude subsets of users
+
+= To apply a move to a game =
+Anyone may attempt to apply a move to a game:
+The user's permissions will be checked, only permitted
+users may apply move to that game
+
+== Anyone may fork a new game from an existing game ==
+This becomes a completely new game with a completely new set of privilege
+
+= To subscribe to a game =
+Anyone may follow any game
+A user may set up to auto-follow any game participated by a member of their clan
+Anyone may unfollow any game
+A game that is completed is automatically unfollowed
+
+= To survey existing games =
+== retrieve games in which I am participating ==
+== retrieve games in which one of my clans are participating ==
+== retrieve all other 'in progress' games ==
+
+= board explorer
+
+- Allows a user to play both sides of a game without an opponent
+- Generates distinct URL that may be shared for this board
+- May be used to generate the starting point for a game at any time
+
+
+
+

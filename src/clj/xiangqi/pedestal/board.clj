@@ -61,10 +61,14 @@
     :board/opened-move
     (first (filter #(= opened-move-location (:disposition/location %)) disp-vec))))
 
+(defn stylesheet-link
+  [href]
+  [:link {:href href :rel "stylesheet" :type "text/css"}])
+
 (defn add-enclosing-html
   [& body]
   [:html
-   [:head [:link {:href "/css/style.css" :rel "stylesheet" :type "text/css"}]]
+   [:head (stylesheet-link "/css/style.css")]
    (into [:body] body)])
 
 (defn board-interceptor

@@ -1,4 +1,4 @@
-(ns client.board-composite)
+(ns client.board-composite
   (:require [rum.core :as rum]
             [client.board-view :as board-view]
             [cljsjs.material-ui :as mui]

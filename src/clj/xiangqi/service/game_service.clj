@@ -10,7 +10,7 @@
 (defn join-game
   "request permission to advance moves in the game
    returns a cookie that will need to be submitted
-   in future games"
+   in future moves"
   [user-id game-id colour]
   )
 
