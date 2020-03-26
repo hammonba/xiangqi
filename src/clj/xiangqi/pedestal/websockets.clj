@@ -1,9 +1,14 @@
 (ns xiangqi.pedestal.websockets
   (:require [clojure.tools.logging :as log]
-            [clojure.core.async :as async])
+            [clojure.core.async :as async]
+            [medley.core :as medley])
   (:import [org.eclipse.jetty.websocket.api Session]))
 
 (defmulti websocket-ontext (fn [_ msg] (or (:msg-type msg) (:action msg))))
+(defmethod websocket-ontext :default
+  [_ msg]
+  (log/infof "websocket: %s" msg)
+  msg)
 
 (defn on-connect
   [ws-clients]
@@ -13,12 +18,17 @@
 
 (defn sendmsg-async
   [sendch msg]
+  (log/info "sendmsg-async: " msg)
   (async/go (async/>! sendch msg)))
 
 (defn on-text
   [sendch msg]
-  (when-let [msg (websocket-ontext sendch (clojure.edn/read-string msg))]
-    (sendmsg-async sendch msg)))
+  (log/info :msg "TEXT Message!" msg)
+  (let [{:keys [correlation-id] :as req} (clojure.edn/read-string msg)]
+    (let [resp (websocket-ontext sendch req)]
+      (sendmsg-async sendch
+        (pr-str (medley/assoc-some resp
+                  :correlation-id correlation-id))))))
 
 (defn on-binary
   [sendch payload offset length]

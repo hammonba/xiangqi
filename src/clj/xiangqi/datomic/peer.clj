@@ -8,9 +8,10 @@
 (def cfg {:server-type :peer-server
 					:access-key "myaccesskey"
 					:secret "mysecret"
-					:endpoint "localhost:8998"})
+					:endpoint "localhost:8998"
+					:validate-hostnames false})
 (def client (delay (dca/client cfg)))
-(def conn (delay (dca/connect @client {:db-name "xiangiqqi"})))
+(def conn (delay (dca/connect @client {:db-name "xiangqi"})))
 
 ;(d/delete-database client {:db-name "xiangiqqi"})
 (comment

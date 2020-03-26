@@ -7,7 +7,8 @@
             [io.pedestal.http.jetty.websockets :as ws]
             [io.pedestal.http.body-params :as body-params]
             [xiangqi.pedestal.board]
-            [xiangqi.pedestal.websockets :as websock-server])
+            [xiangqi.pedestal.websockets :as websock-server]
+            [io.pedestal.http.ring-middlewares :as middlewares])
   (:import [org.eclipse.jetty.websocket.api Session]
            [org.eclipse.jetty.websocket.servlet ServletUpgradeRequest ServletUpgradeResponse]))
 
@@ -23,14 +24,15 @@
 
 (def common-interceptors [(body-params/body-params)])
 
-(def routes #{["/" :get (conj common-interceptors `home-page)]
-              ["/about" :get (conj common-interceptors `about-page)]
-              ["/board" :get
+(def routes #{["/srv/about" :get (conj common-interceptors `about-page)]
+              ["/srv/board" :get
                (conj common-interceptors #'xiangqi.pedestal.board/board-interceptor)
                :route-name ::board-default]
-              ["/board/:board-ident" :get
+              ["/srv/board/:board-ident" :get
                (conj common-interceptors #'xiangqi.pedestal.board/board-interceptor)
-               :route-name ::board]})
+               :route-name ::board]
+              ["/hello" :get (conj common-interceptors `home-page)]
+              #_["/*" :get (conj common-interceptors (middlewares/resource "/resources/public"))]})
 
 (def ws-clients (atom {}))
 
@@ -39,7 +41,8 @@
   {"/ws" (fn []
              (let [sendchp (promise)]
                {:on-connect (ws/start-ws-connection
-                              (fn on-connect* [ws-session send-ch]
+                              (fn on-connect* [^Session ws-session send-ch]
+                                  #_(.getCookies (.getUpgradeRequest ws-session))
                                   (deliver sendchp send-ch)
                                   (swap! sesh-atom assoc send-ch ws-session)))
                 :on-text #(websock-server/on-text @sendchp %1)
@@ -56,7 +59,7 @@
     {:env :prod
      ::ws-sessions ws-sessions
      ::http/routes routes
-     ::http/resource-path "/public"
+     ::http/resource-path "/resources/public"
      ::http/type :jetty
      ::http/container-options {:context-configurator
                                #(ws/add-ws-endpoints

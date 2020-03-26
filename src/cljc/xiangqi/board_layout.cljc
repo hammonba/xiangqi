@@ -24,7 +24,7 @@
                 :location/keys [x y] :as piece}]
   (openmove-fn [:g {:class (colour-classes player)}
                 [:circle {:cx x :cy y :r 0.5 :class (piecehalo-class piece)}]
-                [:use {:x x :y y :href (str "/board.svg#" (name piecename))}]]
+                [:use {:x x :y y :href (str "#" (name piecename))}]]
     piece))
 
 (defn place-movedestination
