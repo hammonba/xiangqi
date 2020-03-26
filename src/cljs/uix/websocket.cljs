@@ -1,9 +1,13 @@
 (ns uix.websocket
   (:require
-   [cljs.core.async :as core.async :refer [go <! >!]]
+   [cljs.core.async :as core.async :refer [go go-loop <! >!]]
    [haslett.client :as ws]
    [haslett.format :as ws-fmt]
    [xframe.core.alpha :as xf :refer [<sub]]))
+
+(def dbk
+  "our subsection of the global state"
+  :uix/websocket)
 
 (defonce correlation-counter (volatile! 0))
 (defn next-correlation-id
@@ -51,50 +55,105 @@
   [url]
   (ws/connect url {:format ws-fmt/edn}))
 
-
 (defn read-loop
-  [ws-conn]
-  (go (let [{:keys [close-status source] :as cc} (<! ws-conn)]
-        (loop [new-msg (<! source)]
-          (if (nil? new-msg)
-            (xf/dispatch [::websocket-closed (<! close-status)])
-            (do
-              (dispatch-response new-msg)
-              (recur (<! source))))))))
+  [{:keys [close-status source] :as ws-conn}]
+  (go-loop [new-msg (<! source)]
+    (if (nil? new-msg)
+      (xf/dispatch [::websocket-closed (<! close-status)])
+      (do
+        (dispatch-response new-msg)
+        (xf/dispatch [::read new-msg])
+        (recur (<! source))))))
 
-(xf/reg-event-fx ::send-async-msg
-  (fn [db [_ msg]]
-    {::send-to-websocket msg}))
+(xf/reg-event-fx ::send
+  (fn [db [_ {:keys [msg single-use? on-ok on-failed]}]]
+    (.log js/console "send" db)
+    (let [correlation-id (swap! (get-in db [:uix/websocket ::correlation-counter]) inc)
+          req (assoc msg :correlation-id correlation-id)]
+      {::raw-send! req
+       :db (assoc-in db [:uix/websocket ::inflight-requests correlation-id]
+             {:correlation-id correlation-id
+              :single-use? (not (false? single-use?))
+              :req req
+              :on-ok on-ok
+              :on-failed on-failed})})))
 
-(xf/reg-event-fx ::websocket-read
-  (fn [db [_ msg]]
-    (.log js/console ::websocket-read msg)))
+(xf/reg-event-db ::read
+  (fn [db [_ {:keys [correlation-id] :as msg}]]
+    (.log js/console ::websocket-read msg)
+    (.log js/console db)
+    (or
+      (when correlation-id
+        (when-let [d (get-in db [:uix/websocket ::inflight-requests correlation-id])]
+          (.log js/console d)
+          (let [d2 (assoc d :resp msg)]
+            (when-let [ook (:on-ok d2)]
+              (cond
+                (keyword? ook) (xf/dispatch [ook d2])
+                (fn? ook) (ook d2)))
+            (let [db2 (if (:single-use? d)
+                        (update-in db [:uix/websocket ::inflight-requests] dissoc correlation-id)
+                        (assoc-in db [:uix/websocket ::inflight-requests correlation-id] d2))]
+              db2))))
+      (do
+        (.warn js/console "IGNORED READ")
+        db))))
 
-(xf/reg-event-fx ::websocket-closed
+(xf/reg-event-db ::websocket-closed
   (fn [db [_ close-status]]
-    (.log js/console ::websocket-closed close-status)))
+    (.log js/console ::websocket-closed close-status)
+    (update db :uix/websocket assoc
+      ::state :closed
+      :close-status close-status)))
 
-(xf/reg-fx ::send-to-websocket
+(xf/reg-fx ::raw-send!
   (fn [db [_ msg]]
-    (let [{:keys [sink]} (<! (get-in db [::websocket :ws-conn]))]
+    (let [sink (get-in db [:uix/websocket ::ws-conn :sink])]
       (go (>! sink msg)))))
 
 (xf/reg-event-db ::db-init
   (fn [db _]
-    (assoc db ::websocket {:url "ws://localhost:8080/ws"})))
+    (assoc db :uix/websocket
+              {::url "ws://localhost:8080/ws"
+               ::correlation-counter (atom 0)
+               ::inflight-requests {}
+               ::state :not-started})))
 
-(xf/reg-event-db ::start-websocket
+(xf/reg-fx ::dispatch-or-queue
+  (fn [db [_ evt]]
+    (if (= :connected (get-in db [dbk ::state]))
+      (xf/dispatch evt)
+      (xf/dispatch [::queue-event evt]))))
+
+(def conj-vec (fnil conj []))
+(xf/reg-event-db ::queue-event
+  (fn [db [_ evt]]
+    (update-in db [dbk ::queued-events] conj-vec evt)))
+
+(xf/reg-event-fx ::store-websocket
+  (fn [db [_ ws-conn]]
+    (.log js/console (str ::store-websocket))
+    {:db (-> db
+           (update :uix/websocket assoc
+             ::ws-conn ws-conn
+             ::read-loop (read-loop ws-conn)
+             ::state :connected)
+           (update :uix/websocket dissoc ::queued-events))
+     :dispatch-n (get-in db [dbk ::queued-events])}))
+
+(xf/reg-event-db ::connect-websocket
   (fn [db _]
-    (when (nil? (get-in db [::socket :ws-conn]))
-      (let [ws-conn (connect-websocket (get-in db [::websocket :url]))]
-        (go (>! (:sink (<! ws-conn)) "HELO"))
-        (update db ::socket assoc
-          :ws-conn ws-conn
-          :read-loop (read-loop ws-conn))))))
+    (if (= :not-started (get-in db [:uix/websocket ::state]))
+      (let [ws-conn (connect-websocket (get-in db [:uix/websocket ::url]))]
+        (assoc db
+          :connecting-chan
+          (go (xf/dispatch [::store-websocket (<! ws-conn)])))
+        )
+      db)))
 
 (defonce init-db
   (xf/dispatch [::db-init]))
 
 (defn create-websocket
   []
-  (xf/dispatch [::start-websocket]))
+  (xf/dispatch [::connect-websocket]))
