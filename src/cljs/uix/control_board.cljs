@@ -6,22 +6,26 @@
 
 (def dbk :uix/control-board)
 
-
-(xf/reg-event-db ::db-init
+(xf/reg-event-db :uix.control-board/db-init
   (fn [db _]
     (.log js/console (str ::db-init))
-    (assoc db dbk
-              {:board-description uix.view-board/initial-state
-               :opened-move nil})))
+    (if (:uix/control-board db)
+      db
+      (assoc db :uix/control-board
+                {:board-description :test-thingy #_uix.view-board/initial-state
+                 :opened-move nil
+                 :updatetime (Date. )}))))
 
 (defonce init-db
-  (xf/dispatch [::db-init]))
+  (xf/dispatch [:uix.control-board/db-init]))
 
 (xf/reg-event-fx ::fetch-board
   (fn [db [_ board-ident]]
-    {:db (update db dbk assoc
-           :board-ident board-ident
-           :fetching true)
+    {:db
+     (update db :uix/control-board assoc
+       :board-ident board-ident
+       :fetching true)
+
      ::ws/dispatch-or-queue
      [::ws/send {:msg {:action :get-board :board-ident board-ident}
                  :on-ok ::fetch-board-ok
@@ -30,12 +34,12 @@
 (xf/reg-event-db ::fetch-board-ok
   (fn [db [_ {:keys [resp]}]]
     (.log js/console (str ::fetch-board-ok) resp)
-    (update db dbk
-      (fn [dbk] (assoc dbk :board-description resp
-                           ::fetching false)))))
+    (update db :uix/control-board assoc
+      :board-description resp
+      :fetching false)))
 
 (xf/reg-sub ::board-description
   (fn []
     (.log js/console (str :board-description) (xf/<- [::xf/db]))
     (get-in (xf/<- [::xf/db])
-      [dbk :board-description])))
+      [:uix/control-board :board-description])))

@@ -20,6 +20,7 @@
   "adds a correlation id and dispatches a single request to the server
   returns a promise channel"
   [msg]
+  (.log js/console (str ::single-request) msg)
   (let [correlation-id (next-correlation-id)
         ch-resp (core.async/promise-chan)
         req (assoc msg :correlation-id correlation-id)]
@@ -38,6 +39,7 @@
 
 (defn dispatch-response
   [{:keys [correlation-id] :as msg}]
+  (.log js/console (str ::dispatch-response) msg)
   (when correlation-id
     (when-let [{:keys [single-use chan]} (get @outstanding-responses correlation-id)]
       (go (>! chan msg)
@@ -61,6 +63,7 @@
     (if (nil? new-msg)
       (xf/dispatch [::websocket-closed (<! close-status)])
       (do
+        (.log js/console (str ::read-loop) new-msg)
         (dispatch-response new-msg)
         (xf/dispatch [::read new-msg])
         (recur (<! source))))))
@@ -113,6 +116,7 @@
 
 (xf/reg-event-db ::db-init
   (fn [db _]
+    (.log js/console (str ::db-init))
     (assoc db :uix/websocket
               {::url "ws://localhost:8080/ws"
                ::correlation-counter (atom 0)
@@ -121,6 +125,7 @@
 
 (xf/reg-fx ::dispatch-or-queue
   (fn [db [_ evt]]
+    (.log js/console (str ::dispatch-or-queue))
     (if (= :connected (get-in db [dbk ::state]))
       (xf/dispatch evt)
       (xf/dispatch [::queue-event evt]))))

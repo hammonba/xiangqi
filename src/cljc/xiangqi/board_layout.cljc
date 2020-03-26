@@ -45,6 +45,7 @@
    disposition
    opened-move
    completable-moves]
+  (.log js/console (str :layout-pieces) @opened-move)
   (let [{:player/keys [red black]} (group-pieces-by-player disposition)]
     [:g {:id "pieces"}
      (into [:g {:id "red-pieces" :fill "red" :stroke "red"}]
