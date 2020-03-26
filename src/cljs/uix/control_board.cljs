@@ -14,7 +14,7 @@
       (assoc db :uix/control-board
                 {:board-description :test-thingy #_uix.view-board/initial-state
                  :opened-move nil
-                 :updatetime (Date. )}))))
+                 :updatetime (.getTime (js/Date.))}))))
 
 (defonce init-db
   (xf/dispatch [:uix.control-board/db-init]))
@@ -24,22 +24,32 @@
     {:db
      (update db :uix/control-board assoc
        :board-ident board-ident
-       :fetching true)
+       :fetching true
+       :updatetime (.getTime (js/Date.)))
 
      ::ws/dispatch-or-queue
-     [::ws/send {:msg {:action :get-board :board-ident board-ident}
-                 :on-ok ::fetch-board-ok
-                 :on-failed ::fetch-board-failed}]}))
+       [::ws/send {:msg {:action :get-board :board-ident board-ident}
+                   :on-ok ::fetch-board-ok
+                   :on-failed ::fetch-board-failed}]}))
 
 (xf/reg-event-db ::fetch-board-ok
   (fn [db [_ {:keys [resp]}]]
     (.log js/console (str ::fetch-board-ok) resp)
     (update db :uix/control-board assoc
       :board-description resp
-      :fetching false)))
+      :fetching false
+      :updatetime (.getTime (js/Date.)))))
 
-(xf/reg-sub ::board-description
+(xf/reg-sub :db/control-board
   (fn []
-    (.log js/console (str :board-description) (xf/<- [::xf/db]))
-    (get-in (xf/<- [::xf/db])
+    (.log js/console (str :db/control-board)
+      (:uix/control-board (xf/<- [::xf/db])))
+    (:uix/control-board (xf/<- [::xf/db]))))
+
+(xf/reg-sub :uix.control-board/board-description
+  (fn []
+    (.log js/console (str :uix.control-board/board-description)
+      (:board-description (xf/<- [:db/control-board])))
+    (:board-description (xf/<- [:db/control-board]))
+    #_(get-in (xf/<- [::xf/db])
       [:uix/control-board :board-description])))

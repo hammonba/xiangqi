@@ -81,7 +81,7 @@
               :on-ok on-ok
               :on-failed on-failed})})))
 
-(xf/reg-event-db ::read
+(xf/reg-event-fx ::read
   (fn [db [_ {:keys [correlation-id] :as msg}]]
     (.log js/console ::websocket-read msg)
     (.log js/console db)
@@ -89,18 +89,16 @@
       (when correlation-id
         (when-let [d (get-in db [:uix/websocket ::inflight-requests correlation-id])]
           (.log js/console d)
-          (let [d2 (assoc d :resp msg)]
-            (when-let [ook (:on-ok d2)]
-              (cond
-                (keyword? ook) (xf/dispatch [ook d2])
-                (fn? ook) (ook d2)))
-            (let [db2 (if (:single-use? d)
-                        (update-in db [:uix/websocket ::inflight-requests] dissoc correlation-id)
-                        (assoc-in db [:uix/websocket ::inflight-requests correlation-id] d2))]
-              db2))))
+          (let [d2 (assoc d :resp msg)
+                db2 (if (:single-use? d)
+                      (update-in db [:uix/websocket ::inflight-requests] dissoc correlation-id)
+                      (assoc-in db [:uix/websocket ::inflight-requests correlation-id] d2))]
+            {:db db2
+             :dispatch [(:on-ok d2) d2]}
+            )))
       (do
         (.warn js/console "IGNORED READ")
-        db))))
+        {:db db}))))
 
 (xf/reg-event-db ::websocket-closed
   (fn [db [_ close-status]]
