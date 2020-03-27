@@ -8,7 +8,7 @@
 
 (xf/reg-event-db :uix.control-board/db-init
   (fn [db _]
-    (.log js/console (str ::db-init))
+    #_(.log js/console (str ::db-init))
     (if (:uix/control-board db)
       db
       (assoc db :uix/control-board
@@ -34,7 +34,7 @@
 
 (xf/reg-event-db ::fetch-board-ok
   (fn [db [_ {:keys [resp]}]]
-    (.log js/console (str ::fetch-board-ok) resp)
+    #_(.log js/console (str ::fetch-board-ok) resp)
     (update db :uix/control-board assoc
       :board-description resp
       :fetching false
@@ -42,13 +42,13 @@
 
 (xf/reg-sub :db/control-board
   (fn []
-    (.log js/console (str :db/control-board)
+    #_(.log js/console (str :db/control-board)
       (:uix/control-board (xf/<- [::xf/db])))
     (:uix/control-board (xf/<- [::xf/db]))))
 
 (xf/reg-sub :uix.control-board/board-description
   (fn []
-    (.log js/console (str :uix.control-board/board-description)
+    #_(.log js/console (str :uix.control-board/board-description)
       (:board-description (xf/<- [:db/control-board])))
     (:board-description (xf/<- [:db/control-board]))
     #_(get-in (xf/<- [::xf/db])

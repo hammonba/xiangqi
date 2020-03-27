@@ -20,7 +20,7 @@
   "adds a correlation id and dispatches a single request to the server
   returns a promise channel"
   [msg]
-  (.log js/console (str ::single-request) msg)
+  #_(.log js/console (str ::single-request) msg)
   (let [correlation-id (next-correlation-id)
         ch-resp (core.async/promise-chan)
         req (assoc msg :correlation-id correlation-id)]
@@ -39,7 +39,7 @@
 
 (defn dispatch-response
   [{:keys [correlation-id] :as msg}]
-  (.log js/console (str ::dispatch-response) msg)
+  #_(.log js/console (str ::dispatch-response) msg)
   (when correlation-id
     (when-let [{:keys [single-use chan]} (get @outstanding-responses correlation-id)]
       (go (>! chan msg)
@@ -63,14 +63,14 @@
     (if (nil? new-msg)
       (xf/dispatch [::websocket-closed (<! close-status)])
       (do
-        (.log js/console (str ::read-loop) new-msg)
+        #_(.log js/console (str ::read-loop) new-msg)
         (dispatch-response new-msg)
         (xf/dispatch [::read new-msg])
         (recur (<! source))))))
 
 (xf/reg-event-fx ::send
   (fn [db [_ {:keys [msg single-use? on-ok on-failed]}]]
-    (.log js/console "send" db)
+    #_(.log js/console "send" db)
     (let [correlation-id (swap! (get-in db [:uix/websocket ::correlation-counter]) inc)
           req (assoc msg :correlation-id correlation-id)]
       {::raw-send! req
@@ -83,12 +83,12 @@
 
 (xf/reg-event-fx ::read
   (fn [db [_ {:keys [correlation-id] :as msg}]]
-    (.log js/console ::websocket-read msg)
-    (.log js/console db)
+    #_(.log js/console ::websocket-read msg)
+    #_(.log js/console db)
     (or
       (when correlation-id
         (when-let [d (get-in db [:uix/websocket ::inflight-requests correlation-id])]
-          (.log js/console d)
+          #_(.log js/console d)
           (let [d2 (assoc d :resp msg)
                 db2 (if (:single-use? d)
                       (update-in db [:uix/websocket ::inflight-requests] dissoc correlation-id)
@@ -102,7 +102,7 @@
 
 (xf/reg-event-db ::websocket-closed
   (fn [db [_ close-status]]
-    (.log js/console ::websocket-closed close-status)
+    #_(.log js/console ::websocket-closed close-status)
     (update db :uix/websocket assoc
       ::state :closed
       :close-status close-status)))
@@ -114,7 +114,7 @@
 
 (xf/reg-event-db ::db-init
   (fn [db _]
-    (.log js/console (str ::db-init))
+    #_(.log js/console (str ::db-init))
     (assoc db :uix/websocket
               {::url "ws://localhost:8080/ws"
                ::correlation-counter (atom 0)
@@ -123,7 +123,7 @@
 
 (xf/reg-fx ::dispatch-or-queue
   (fn [db [_ evt]]
-    (.log js/console (str ::dispatch-or-queue))
+    #_(.log js/console (str ::dispatch-or-queue))
     (if (= :connected (get-in db [dbk ::state]))
       (xf/dispatch evt)
       (xf/dispatch [::queue-event evt]))))
@@ -135,7 +135,7 @@
 
 (xf/reg-event-fx ::store-websocket
   (fn [db [_ ws-conn]]
-    (.log js/console (str ::store-websocket))
+    #_(.log js/console (str ::store-websocket))
     {:db (-> db
            (update :uix/websocket assoc
              ::ws-conn ws-conn
