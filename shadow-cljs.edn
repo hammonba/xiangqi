@@ -1,0 +1,25 @@
+;; shadow-cljs configuration
+{:deps true
+
+ :dependencies
+ []
+
+ :nrepl {:port 9000
+         :middleware []}
+
+ :dev-http {8081 "resources/public"}
+ :builds
+ {:uix {:target :browser
+        :output-dir "resources/public/js"
+        :asset-path "/js"
+
+
+        :modules
+        {:main {:entries [uix.app]
+                :init-fn uix.app/main}}
+
+        :compiler-options
+        {:infer-externs :auto
+         :closure-warnings {:global-this :off}
+         :closure-defines {"goog.DEBUG" true}}
+        }}}
