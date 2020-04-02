@@ -23,11 +23,13 @@
              :default-src "'self'"
              :img-src "http: https: data:"
              :style-src "* 'unsafe-inline'"
-             :connect-src "ws:"}})
+             :connect-src "ws: http: https:"
+             :frame-src "https://dev-e0x9wgap.eu.auth0.com"}})
     server/default-interceptors
     server/dev-interceptors
     server/create-server
     server/start))
+
 
 (defn -main
   [& args]

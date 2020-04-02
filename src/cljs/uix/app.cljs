@@ -2,6 +2,7 @@
   (:require
    [clojure.core.async :as async]
    ["@material-ui/core/styles" :as styles]
+   [uix.control-auth]
    [uix.control-board]
    [uix.navbar :refer [navbar]]
    [uix.view-board :as board]
@@ -65,8 +66,8 @@
   []
   (uix.dom/render [app] (.getElementById js/document "app"))
   ;document.getElementById("essveegee").height.baseVal.newValueSpecifiedUnits(SVGLength.SVG_LENGTHTYPE_PX, document.documentElement.clientHeight);
-
-  (let [eltApp (.getElementById js/document "app")
+  ;;TODO resize board here!!!
+  #_(let [eltApp (.getElementById js/document "app")
         w (.-clientWidth eltApp)
         h (.-clientHeight eltApp)
         d (min w (* h 0.9))

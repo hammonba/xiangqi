@@ -22,6 +22,8 @@
 				org.clojure/spec.alpha {:mvn/version "0.2.176"}
 				org.clojure/tools.logging {:mvn/version "1.0.0"}
 
+				com.auth0/auth0 {:mvn/version "1.15.0"}
+				com.auth0/mvc-auth-commons {:mvn/version "1.2.0"}
 				haslett {:mvn/version "0.1.6"}
 
 				cljs-bean {:mvn/version "1.5.0"}

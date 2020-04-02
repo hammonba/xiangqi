@@ -21,5 +21,6 @@
         :compiler-options
         {:infer-externs :auto
          :closure-warnings {:global-this :off}
-         :closure-defines {"goog.DEBUG" true}}
+         :closure-defines {"goog.DEBUG" true#}
+         :output-feature-set :es8}
         }}}

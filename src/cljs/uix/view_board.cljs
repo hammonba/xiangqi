@@ -363,7 +363,6 @@
   []
   (let [board-desc (<sub [:uix.control-board/board-description])]
     [:svg#outer-svg {:viewBox "0 0 900 1000"
-                     :width "100px"
                      :preserveAspectRatio "xMinYMin meet"}
      [:defs
       board-lines chu river han border
