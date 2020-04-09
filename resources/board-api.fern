@@ -10,11 +10,244 @@
  board/v1 (fern/lit vase/api
             {:path "/board/v1"
              :on-request [@datomic-conn]
-             :on-startup [@datomic-conn]
+             :on-startup [@datomic-conn
+                          @board.v1.schema/attributes
+                          @board.v1.schema/named-entities
+                          @board.v1.schema/location-coords]
              :routes @board.v1/routes})
 
  board.v1/moves (fern/lit vase/respond {:body "Moves"})
  board.v1/describe (fern/lit vase/respond {:body "Describe"})
  board.v1/initial (fern/lit vase/respond {:body "1234"})
  board.v1/html (fern/lit vase/respond {:body "html view"})
+
+ board.v1.schema/attributes (fern/lit vase.datomic/attributes
+                              [:location/x :one :long "Cartesian X of board 0 to 8 where 3,4,5 are palace"]
+                              [:location/y :one :long "Cartesian Y; Red is at 0, Black is at 9, river between 4 and 5"]
+                              [:board/ident-218 :one :bigint :identity "uniquely describes the board layout in 218 bit bigint"]
+                              [:board/ident-string :one :string :identity "the board identity expressed as a string"]
+                              [:board/moves-computed? :one :boolean "have we previously computed onward moves?"]
+                              [:board/winner :one :ref "reference to the player who won"]
+                              [:board/loser :one :ref "reference to the player who lost"]
+                              [:move/board-before :one :ref "the board before this move"]
+                              [:move/board-board :one :ref "the board after this move"]
+                              [:move/piece-moved :one :ref "the piece that was moved"]
+                              [:move/piece-taken :one :ref "the piece that was taken"]
+                              [:move/start-loc :one :ref "location where move started"]
+                              [:move/end-loc :one :ref "location where move finished"]
+                              [:move/checked-by :one :ref "location that would put us into check"]
+                              [:move/illegal? :one :keyword "describes why this move is illegal"]
+                              [:move/flying-general? :one :boolean "illegal due to flying general?"]
+                              [:move/aggregation :many :ref :component "collate moves by direction of travel"])
+
+ board.v1.schema/named-entities (fern/lit vase.datomic/tx
+                                  {:db/ident :piecename/red-soldier}
+                                  {:db/ident :piecename/red-cannon}
+                                  {:db/ident :piecename/red-chariot}
+                                  {:db/ident :piecename/red-horse}
+                                  {:db/ident :piecename/red-minister}
+                                  {:db/ident :piecename/red-guard}
+                                  {:db/ident :piecename/red-marshal}
+
+                                  {:db/ident :piecename/black-private}
+                                  {:db/ident :piecename/black-catapult}
+                                  {:db/ident :piecename/black-chariot}
+                                  {:db/ident :piecename/black-horse}
+                                  {:db/ident :piecename/black-elephant}
+                                  {:db/ident :piecename/black-guard}
+                                  {:db/ident :piecename/black-general}
+
+                                  {:db/ident :player/red}
+                                  {:db/ident :player/black}
+
+                                  {:db/ident :location/a1}
+                                  {:db/ident :location/a2}
+                                  {:db/ident :location/a3}
+                                  {:db/ident :location/a4}
+                                  {:db/ident :location/a5}
+                                  {:db/ident :location/a6}
+                                  {:db/ident :location/a7}
+                                  {:db/ident :location/a8}
+                                  {:db/ident :location/a9}
+                                  {:db/ident :location/a10}
+
+                                  {:db/ident :location/b1}
+                                  {:db/ident :location/b2}
+                                  {:db/ident :location/b3}
+                                  {:db/ident :location/b4}
+                                  {:db/ident :location/b5}
+                                  {:db/ident :location/b6}
+                                  {:db/ident :location/b7}
+                                  {:db/ident :location/b8}
+                                  {:db/ident :location/b9}
+                                  {:db/ident :location/b10}
+
+                                  {:db/ident :location/c1}
+                                  {:db/ident :location/c2}
+                                  {:db/ident :location/c3}
+                                  {:db/ident :location/c4}
+                                  {:db/ident :location/c5}
+                                  {:db/ident :location/c6}
+                                  {:db/ident :location/c7}
+                                  {:db/ident :location/c8}
+                                  {:db/ident :location/c9}
+                                  {:db/ident :location/c10}
+
+                                  {:db/ident :location/d1}
+                                  {:db/ident :location/d2}
+                                  {:db/ident :location/d3}
+                                  {:db/ident :location/d4}
+                                  {:db/ident :location/d5}
+                                  {:db/ident :location/d6}
+                                  {:db/ident :location/d7}
+                                  {:db/ident :location/d8}
+                                  {:db/ident :location/d9}
+                                  {:db/ident :location/d10}
+
+                                  {:db/ident :location/e1}
+                                  {:db/ident :location/e2}
+                                  {:db/ident :location/e3}
+                                  {:db/ident :location/e4}
+                                  {:db/ident :location/e5}
+                                  {:db/ident :location/e6}
+                                  {:db/ident :location/e7}
+                                  {:db/ident :location/e8}
+                                  {:db/ident :location/e9}
+                                  {:db/ident :location/e10}
+
+                                  {:db/ident :location/f1}
+                                  {:db/ident :location/f2}
+                                  {:db/ident :location/f3}
+                                  {:db/ident :location/f4}
+                                  {:db/ident :location/f5}
+                                  {:db/ident :location/f6}
+                                  {:db/ident :location/f7}
+                                  {:db/ident :location/f8}
+                                  {:db/ident :location/f9}
+                                  {:db/ident :location/f10}
+
+                                  {:db/ident :location/g1}
+                                  {:db/ident :location/g2}
+                                  {:db/ident :location/g3}
+                                  {:db/ident :location/g4}
+                                  {:db/ident :location/g5}
+                                  {:db/ident :location/g6}
+                                  {:db/ident :location/g7}
+                                  {:db/ident :location/g8}
+                                  {:db/ident :location/g9}
+                                  {:db/ident :location/g10}
+
+                                  {:db/ident :location/h1}
+                                  {:db/ident :location/h2}
+                                  {:db/ident :location/h3}
+                                  {:db/ident :location/h4}
+                                  {:db/ident :location/h5}
+                                  {:db/ident :location/h6}
+                                  {:db/ident :location/h7}
+                                  {:db/ident :location/h8}
+                                  {:db/ident :location/h9}
+                                  {:db/ident :location/h10}
+
+                                  {:db/ident :location/i1}
+                                  {:db/ident :location/i2}
+                                  {:db/ident :location/i3}
+                                  {:db/ident :location/i4}
+                                  {:db/ident :location/i5}
+                                  {:db/ident :location/i6}
+                                  {:db/ident :location/i7}
+                                  {:db/ident :location/i8}
+                                  {:db/ident :location/i9}
+                                  {:db/ident :location/i10})
+
+ board.v1.schema/location-coords (fern/lit vase.datomic/tx
+                                   {:db/id :location/a1, :location/x 0, :location/y 0}
+                                   {:db/id :location/a2, :location/x 0, :location/y 1}
+                                   {:db/id :location/a3, :location/x 0, :location/y 2}
+                                   {:db/id :location/a4, :location/x 0, :location/y 3}
+                                   {:db/id :location/a5, :location/x 0, :location/y 4}
+                                   {:db/id :location/a6, :location/x 0, :location/y 5}
+                                   {:db/id :location/a7, :location/x 0, :location/y 6}
+                                   {:db/id :location/a8, :location/x 0, :location/y 7}
+                                   {:db/id :location/a9, :location/x 0, :location/y 8}
+                                   {:db/id :location/a10, :location/x 0, :location/y 9}
+                                   {:db/id :location/b1, :location/x 1, :location/y 0}
+                                   {:db/id :location/b2, :location/x 1, :location/y 1}
+                                   {:db/id :location/b3, :location/x 1, :location/y 2}
+                                   {:db/id :location/b4, :location/x 1, :location/y 3}
+                                   {:db/id :location/b5, :location/x 1, :location/y 4}
+                                   {:db/id :location/b6, :location/x 1, :location/y 5}
+                                   {:db/id :location/b7, :location/x 1, :location/y 6}
+                                   {:db/id :location/b8, :location/x 1, :location/y 7}
+                                   {:db/id :location/b9, :location/x 1, :location/y 8}
+                                   {:db/id :location/b10, :location/x 1, :location/y 9}
+                                   {:db/id :location/c1, :location/x 2, :location/y 0}
+                                   {:db/id :location/c2, :location/x 2, :location/y 1}
+                                   {:db/id :location/c3, :location/x 2, :location/y 2}
+                                   {:db/id :location/c4, :location/x 2, :location/y 3}
+                                   {:db/id :location/c5, :location/x 2, :location/y 4}
+                                   {:db/id :location/c6, :location/x 2, :location/y 5}
+                                   {:db/id :location/c7, :location/x 2, :location/y 6}
+                                   {:db/id :location/c8, :location/x 2, :location/y 7}
+                                   {:db/id :location/c9, :location/x 2, :location/y 8}
+                                   {:db/id :location/c10, :location/x 2, :location/y 9}
+                                   {:db/id :location/d1, :location/x 3, :location/y 0}
+                                   {:db/id :location/d2, :location/x 3, :location/y 1}
+                                   {:db/id :location/d3, :location/x 3, :location/y 2}
+                                   {:db/id :location/d4, :location/x 3, :location/y 3}
+                                   {:db/id :location/d5, :location/x 3, :location/y 4}
+                                   {:db/id :location/d6, :location/x 3, :location/y 5}
+                                   {:db/id :location/d7, :location/x 3, :location/y 6}
+                                   {:db/id :location/d8, :location/x 3, :location/y 7}
+                                   {:db/id :location/d9, :location/x 3, :location/y 8}
+                                   {:db/id :location/d10, :location/x 3, :location/y 9}
+                                   {:db/id :location/e1, :location/x 4, :location/y 0}
+                                   {:db/id :location/e2, :location/x 4, :location/y 1}
+                                   {:db/id :location/e3, :location/x 4, :location/y 2}
+                                   {:db/id :location/e4, :location/x 4, :location/y 3}
+                                   {:db/id :location/e5, :location/x 4, :location/y 4}
+                                   {:db/id :location/e6, :location/x 4, :location/y 5}
+                                   {:db/id :location/e7, :location/x 4, :location/y 6}
+                                   {:db/id :location/e8, :location/x 4, :location/y 7}
+                                   {:db/id :location/e9, :location/x 4, :location/y 8}
+                                   {:db/id :location/e10, :location/x 4, :location/y 9}
+                                   {:db/id :location/f1, :location/x 5, :location/y 0}
+                                   {:db/id :location/f2, :location/x 5, :location/y 1}
+                                   {:db/id :location/f3, :location/x 5, :location/y 2}
+                                   {:db/id :location/f4, :location/x 5, :location/y 3}
+                                   {:db/id :location/f5, :location/x 5, :location/y 4}
+                                   {:db/id :location/f6, :location/x 5, :location/y 5}
+                                   {:db/id :location/f7, :location/x 5, :location/y 6}
+                                   {:db/id :location/f8, :location/x 5, :location/y 7}
+                                   {:db/id :location/f9, :location/x 5, :location/y 8}
+                                   {:db/id :location/f10, :location/x 5, :location/y 9}
+                                   {:db/id :location/g1, :location/x 6, :location/y 0}
+                                   {:db/id :location/g2, :location/x 6, :location/y 1}
+                                   {:db/id :location/g3, :location/x 6, :location/y 2}
+                                   {:db/id :location/g4, :location/x 6, :location/y 3}
+                                   {:db/id :location/g5, :location/x 6, :location/y 4}
+                                   {:db/id :location/g6, :location/x 6, :location/y 5}
+                                   {:db/id :location/g7, :location/x 6, :location/y 6}
+                                   {:db/id :location/g8, :location/x 6, :location/y 7}
+                                   {:db/id :location/g9, :location/x 6, :location/y 8}
+                                   {:db/id :location/g10, :location/x 6, :location/y 9}
+                                   {:db/id :location/h1, :location/x 7, :location/y 0}
+                                   {:db/id :location/h2, :location/x 7, :location/y 1}
+                                   {:db/id :location/h3, :location/x 7, :location/y 2}
+                                   {:db/id :location/h4, :location/x 7, :location/y 3}
+                                   {:db/id :location/h5, :location/x 7, :location/y 4}
+                                   {:db/id :location/h6, :location/x 7, :location/y 5}
+                                   {:db/id :location/h7, :location/x 7, :location/y 6}
+                                   {:db/id :location/h8, :location/x 7, :location/y 7}
+                                   {:db/id :location/h9, :location/x 7, :location/y 8}
+                                   {:db/id :location/h10, :location/x 7, :location/y 9}
+                                   {:db/id :location/i1, :location/x 8, :location/y 0}
+                                   {:db/id :location/i2, :location/x 8, :location/y 1}
+                                   {:db/id :location/i3, :location/x 8, :location/y 2}
+                                   {:db/id :location/i4, :location/x 8, :location/y 3}
+                                   {:db/id :location/i5, :location/x 8, :location/y 4}
+                                   {:db/id :location/i6, :location/x 8, :location/y 5}
+                                   {:db/id :location/i7, :location/x 8, :location/y 6}
+                                   {:db/id :location/i8, :location/x 8, :location/y 7}
+                                   {:db/id :location/i9, :location/x 8, :location/y 8}
+                                   {:db/id :location/i10, :location/x 8, :location/y 9})
  }
