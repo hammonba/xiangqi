@@ -1,0 +1,35 @@
+{
+ game.v1/routes #{["/create" :post @game.v1/create :game.v1/create]
+                  ["/join" :post @game.v1/join :game.v1/join]
+                  ["/leave" :post @game.v1/leave :game.v1/leave]
+                  ["/move" :post @game.v1/move :game.v1/move]
+                  ["/concede" :post @game.v1/concede :game.v1/concede]
+                  ["/watch" :post @game.v1/watch :game.v1/watch]
+                  ["/unwatch" :post @game.v1/unwatch :game.v1/unwatch]
+                  ["/my-games" :get @game.v1/my-games :game.v1/my-games]
+                  ["/all-games" :get @game.v1/all-games :game.v1/all-games]
+                  ["/sync/:game-id" :get @game.v1/sync :game.v1/sync]}
+
+ datomic-conn (fern/lit vase.datomic/connection @game-api/datomic-uri)
+
+ game/v1 (fern/lit vase/api
+           {:path "/game/v1"
+            :on-request [@datomic-conn @io.pedestal.http.body-params/body-params @io.pedestal.http/json-body]
+            :on-startup [@datomic-conn]
+            :routes @game.v1/routes})
+
+ game.v1/create (fern/lit vase/respond {:body "new game"})
+ game.v1/join (fern/lit vase/respond {:body "join game"})
+ game.v1/leave (fern/lit vase/respond {:body " leave game"})
+ game.v1/move (fern/lit vase/respond {:body "place move"})
+ game.v1/concede (fern/lit vase/respond {:body "concede game"})
+ game.v1/watch (fern/lit vase/respond {:body "watch game"})
+ game.v1/unwatch (fern/lit vase/respond {:body "unwatch game"})
+ game.v1/my-games (fern/lit vase/respond {:body "my-games"})
+ game.v1/all-games (fern/lit vase/respond {:body "all-games"})
+ game.v1/sync (fern/lit vase/respond {:body "sync game"})
+
+
+
+
+ }

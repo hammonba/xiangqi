@@ -1,4 +1,5 @@
-(ns xiangqi.board.bit-utils)
+(ns xiangqi.board.bit-utils
+  "functions helpful for encoding and decoding the board")
 
 (defn bigint-bitshift-left
   "like bit-shift-left but for bigint."

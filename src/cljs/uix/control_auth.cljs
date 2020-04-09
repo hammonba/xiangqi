@@ -30,22 +30,22 @@
       (.log js/console "loginWithRedirect: " lr))
     (assoc-in db [dbk ::client] c)))
 
-(xf/reg-event-db ::db-init
-  (fn [db _]
-    (let [p (->
-              (auth0 auth0-config)
-              (.then (fn [c]
-                       (.log js/console "auth-client constructed: " c)
-                       (xf/dispatch [::store-auth0client c])))
-              (.catch (fn [e]
-                        (.error js/console "auth-client caught: " e)))
-              (.finally (fn [c]
-                          (.log js/console "auth-client finally: " c)
-                          c)))]
-      (assoc db dbk {:auth0-promise p}))))
-
-(defonce init-db
-  (xf/dispatch [::db-init]))
+;(xf/reg-event-db ::db-init
+;  (fn [db _]
+;    (let [p (->
+;              (auth0 uth0-config)
+;              (.then (fn [c]
+;                       (.log js/console "auth-client constructed: " c)
+;                       (xf/dispatch [::store-auth0client c])))
+;              (.catch (fn [e]
+;                        (.error js/console "auth-client caught: " e)))
+;              (.finally (fn [c]
+;                          (.log js/console "auth-client finally: " c)
+;                          c)))]
+;      (assoc db dbk {:auth0-promise p}))))
+;
+;(defonce init-db
+;  (xf/dispatch [::db-init]))
 
 (defn create-websocket
   []

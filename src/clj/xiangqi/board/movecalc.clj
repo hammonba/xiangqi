@@ -231,7 +231,8 @@
     (map list)))
 
 (defn compute-and-generate-next-moves
-  "main entry point to compute next moves "
+  "main entry point to compute next moves.
+   ALL OTHER FUNCTIONS SHOULD BE CONSIDERED PRIVATE"
   [{:board/keys [player disp-vec] :as board}]
   (let [board (board-ident/add-dispmtx board)]
     (into []

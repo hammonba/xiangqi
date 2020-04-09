@@ -1,0 +1,20 @@
+{
+ board.v1/routes #{["/moves/:id" :get @board.v1/moves :board.v1/moves]
+                   ["/describe/:id" :get @board.v1/describe :board.v1/describe]
+                   ["/initial" :get @board.v1/initial :board.v1/initial]
+                   ["/html/:id" :get @board.v1/html :board.v1/html]}
+
+ datomic-conn (fern/lit vase.datomic/connection @board-api/datomic-uri)
+
+
+ board/v1 (fern/lit vase/api
+            {:path "/board/v1"
+             :on-request [@datomic-conn]
+             :on-startup [@datomic-conn]
+             :routes @board.v1/routes})
+
+ board.v1/moves (fern/lit vase/respond {:body "Moves"})
+ board.v1/describe (fern/lit vase/respond {:body "Describe"})
+ board.v1/initial (fern/lit vase/respond {:body "1234"})
+ board.v1/html (fern/lit vase/respond {:body "html view"})
+ }

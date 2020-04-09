@@ -11,10 +11,11 @@
             [xiangqi.pedestal.board]
             [xiangqi.pedestal.websockets :as websock-server]
             [io.pedestal.http.ring-middlewares :as middlewares])
-  (:import [org.eclipse.jetty.websocket.api Session]
+  (:import [org.eclipse.jetty.websocket.api Session WebSocketAdapter]
            [org.eclipse.jetty.websocket.servlet ServletUpgradeRequest ServletUpgradeResponse]
            [org.eclipse.jetty.servlet ServletContextHandler]
-           [org.eclipse.jetty.server.session SessionHandler]))
+           [org.eclipse.jetty.server.session SessionHandler]
+           [java.util UUID]))
 
 (defn about-page
   [request]
@@ -55,21 +56,47 @@
 
 (defn ws-paths
   [sesh-atom]
-  {"/ws" (fn []
+  {"/ws" (fn [uuid]
+             (.printStackTrace (ex-info "ws thunk just called!!!" {:uuid uuid}))
              (let [sendchp (promise)]
                {:on-connect (ws/start-ws-connection
                               (fn on-connect* [^Session ws-session send-ch]
+                                  (.printStackTrace (ex-info "this is a test stacktrace" {}))
                                   #_(.getCookies (.getUpgradeRequest ws-session))
                                   (deliver sendchp send-ch)
-                                  (swap! sesh-atom assoc send-ch ws-session)))
+                                  (swap! sesh-atom assoc uuid {:channel send-ch
+                                                               :session ws-session})))
                 :on-text #(websock-server/on-text @sendchp %1)
                 :on-binary #(websock-server/on-binary @sendchp %1 %2 %3)
                 :on-error #(websock-server/on-error @sendchp %1)
                 :on-close #(websock-server/on-close @sendchp %1 %2)}))})
 
+(defn ws-listenerX
+  "Hindol Adyha on pedestala Slack Channel"
+  [_request _response ws-map]
+  (proxy [WebSocketAdapter] []
+    (onWebSocketConnect [^Session ws-session]
+      (proxy-super onWebSocketConnect ws-session)
+      (when-let [f (:on-connect ws-map)]
+        (f ws-session)))
+    (onWebSocketClose [status-code reason]
+      (when-let [f (:on-close ws-map)]
+        (f (.getSession this) status-code reason)))
+    (onWebSocketError [^Throwable e]
+      (when-let [f (:on-error ws-map)]
+        (f (.getSession this) e)))
+    (onWebSocketText [^String message]
+      (when-let [f (:on-text ws-map)]
+        (f (.getSession this) message)))
+    (onWebSocketBinary [^bytes payload offset length]
+      (when-let [f (:on-binary ws-map)]
+        (f (.getSession this) payload offset length)))))
+
 (defn ws-stateful-listener
-  [^ServletUpgradeRequest req ^ServletUpgradeResponse resp wsmap-genfn]
-  (ws/make-ws-listener (wsmap-genfn)))
+  [^ServletUpgradeRequest req
+   ^ServletUpgradeResponse resp
+   wsmap-genfn]
+  (ws/make-ws-listener (wsmap-genfn (UUID/randomUUID))))
 
 (def service
   (let [ws-sessions (atom {})]

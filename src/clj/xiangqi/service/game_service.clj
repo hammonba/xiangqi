@@ -49,4 +49,5 @@
   [user-id unfinished? limit])
 
 (defn all-games
-  "returns game-ids for (most recent) games from everyone")
+  "returns game-ids for (most recent) games from everyone"
+  [])

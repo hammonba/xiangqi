@@ -24,6 +24,7 @@
 (defn on-text
   [sendch msg]
   (log/info :msg "TEXT Message!" msg)
+  (.printStackTrace (ex-info "this is a test stacktrace" {}))
   (let [{:keys [correlation-id] :as req} (clojure.edn/read-string msg)]
     (let [resp (websocket-ontext sendch req)]
       (sendmsg-async sendch

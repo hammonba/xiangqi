@@ -1,0 +1,45 @@
+{required/namespaces []
+
+ board-api/datomic-uri "datomic:mem:/board"
+ game-api/datomic-uri "datomic:mem:/game"
+ user-api/datomic-uri "datomic:mem:/user"
+
+ http/servicemap
+ {:io.pedestal.http/type ::jetty
+  :io.pedestal.http/port 8080
+  :io.pedestal.http/resource-path "/public"
+  :io.pedestal.http/join? false
+  :io.pedestal.http/dev? true}
+
+ integrant/system
+ {
+  [:component/vase-api :api/board]
+  {:specs (fern/lit fern/load-env {:path "resources/board-api.fern"
+                                   :enclosing-env (fern/fern)
+                                   :exclude-keys #{integrant/system}})
+   :api-syms [board/v1]}
+
+  [:component/vase-api :api/game]
+  {:specs (fern/lit fern/load-env {:path "resources/game-api.fern"
+                                   :enclosing-env (fern/fern)
+                                   :exclude-keys #{integrant/system}})
+   :api-syms [game/v1]}
+
+  [:component/vase-api :api/user]
+  {:specs (fern/lit fern/load-env {:path "resources/user-api.fern"
+                                   :enclosing-env (fern/fern)
+                                   :exclude-keys #{integrant/system}})
+   :api-syms [user/v1]}
+
+  :component/websocket
+  {}
+
+  :component/endpoint
+  {:service @http/servicemap
+   :api [#ig/ref [:component/vase-api :api/board]
+         #ig/ref [:component/vase-api :api/game]
+         #ig/ref [:component/vase-api :api/user]]
+   :addins [#ig/ref :component/websocket]}
+  }
+
+ }

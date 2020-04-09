@@ -1,9 +1,9 @@
 (ns xiangqi.board.board-ident
+  "serialise board layout into a single number. also deserialise"
   (:require [clojure.set]
             [medley.core :as medley]
             [xiangqi.board.bit-utils :as bitutils]
             [xiangqi.board-utils :as boardutils]))
-
 
 ;; encoding constants
 (def player->hashnumber

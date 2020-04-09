@@ -13,6 +13,7 @@
     mz))
 
 (def conj-vec (fnil conj []))
+(def into-set (fnil into #{}))
 
 (defn zip-by
   ([keyfn coll]
