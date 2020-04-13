@@ -13,10 +13,33 @@
    :player/black "black-opened-move"})
 
 (defn piecehalo-class
-  [disp-elt]
-  (cond (empty? (:piece/all-movechains disp-elt)) "counter"
-        ;(:did-piece-open-move? piece) "has-moves"
-        :else "counter has-moves"))
+  [{:piece/keys [all-movechains]}]
+  (if (empty? all-movechains)
+    "counter"
+    "counter has-moves"))
+
+(defn piece->colourclass
+  [{:disposition/keys [piece]}]
+  (colour-classes (board-utils/piece->owner piece)))
+
+(def ^:dynamic *href-root* "")
+
+(defn piece-href
+  [{:disposition/keys [piece]}]
+  (str *href-root* "#" (name piece)))
+
+(defn piece-svg
+  [{:location/keys [x y] :as disp-elt}]
+  [:g {:class (piece->colourclass disp-elt)}
+   [:circle {:cx x :cy y :r 0.5 :class (piecehalo-class disp-elt)}]
+   [:use {:x x :y y :href (piece-href disp-elt)}]])
+
+(defn completemove-svg
+  [{:move/keys [end-location]}]
+  [:circle {:cx (:location/x end-location)
+            :cy (:location/y end-location)
+            :r 0.5
+            :class "opened-move"}])
 
 (defn place-singlepiece
   [openmove-fn {:keys [player]

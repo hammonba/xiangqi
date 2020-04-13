@@ -73,7 +73,6 @@
         (assoc :board/opened-move disp-elt)))
     board))
 
-
 (defn remove-unoccupied
   "create new key :board/disposition that ONLY contains
    the occupied pieces.
@@ -99,7 +98,7 @@
                :path-params {:board-ident board-after})}
    svg])
 
-(defn did-piece-open-move?
+#_(defn did-piece-open-move?
   [opened-location piece]
   (when opened-location
     (= opened-location (:piece/location piece))))
@@ -110,25 +109,19 @@
               :disposition/piece)
     disposition))
 
-(def player-svg-group
+#_(def player-svg-group
   {:player/red {:id "red-pieces" :fill "red" :stroke "red"}
    :player/black {:id "black-pieces" :fill "black" :stroke "black"}})
 
-(def piece-colour-classes
+#_(def piece-colour-classes
   {:player/red "red-piece"
    :player/black "black-piece"})
 
-(defn piecehalo-class
-  [{:piece/keys [all-movechains]}]
-  (if (empty? all-movechains)
-    "counter"
-    "counter has-moves"))
-
-(defn piece-href
+#_(defn piece-href
   [{:disposition/keys [piece]}]
   (str "/board.svg" "#" (name piece)))
 
-(defn open-move
+#_(defn open-move
   [board-ident svg {:piece/keys [location]}]
   [:a {:href (http.route/url-for :board.v1/html
                :path-params {:board-ident board-ident}
@@ -141,9 +134,9 @@
     :query-params {:open (utils/nname location)}))
 
 (defn create-completemove-url
-  [ident-string]
+  [{:move/keys [board-after]}]
   (http.route/url-for :board.v1/html
-    :path-params {:board-id ident-string}))
+    :path-params {:board-id board-after}))
 
 (defn wrapwith-openmove-anchor
   "wrap svg for a piece within an html anchor"
@@ -157,23 +150,18 @@
   (when-not (empty? (:piece/all-movechains disp-elt))
     (create-openmove-url (:disposition/location disp-elt))))
 
-(defn piece-svg
-  [colour-class {:location/keys [x y] :as disp-elt}]
-  (-> [:g {:class colour-class}
-       [:circle {:cx x :cy y :r 0.5 :class (piecehalo-class disp-elt)}]
-       [:use {:x x :y y :href (piece-href disp-elt)}]]
-    (wrapwith-openmove-anchor (maybe-create-openmove-url disp-elt))))
-
 (defn pieces-for-player
   [{:board/keys [disposition]}]
-  (medley/map-kv-vals
-    (fn [player disp-elts]
-        (let [cc (piece-colour-classes player)]
-          (map #(piece-svg cc %)
-            disp-elts)))
-    (group-pieces-by-player disposition)))
+  (binding [board-layout/*href-root* "/board.svg"]
+    (medley/map-vals
+      (fn [disp-elts]
+          (mapv #(wrapwith-openmove-anchor
+                   (board-layout/piece-svg  %)
+                   (maybe-create-openmove-url %))
+            disp-elts))
+      (group-pieces-by-player disposition))))
 
-(defn completemove-svg
+#_(defn completemove-svg
   [{:move/keys [end-location board-after]}]
   (-> [:circle {:cx (:location/x end-location)
                 :cy (:location/y end-location)
@@ -182,16 +170,12 @@
     (wrapwith-openmove-anchor
       (create-completemove-url board-after))))
 
-(def boundary-class
-  {:player/red "red-boundary"
-   :player/black "black-boundary"})
-
 (defn board-hiccup
   [{:board/keys [player opened-move]} {:player/keys [red black]}]
   [:svg {:xmlns "http://www.w3.org/2000/svg" :version "1.1" :viewBox "0 0 10 12"}
    [:g {:viewBox "0 0 9 10" :preserveAspectRatio "xMidYMid meet"}
     [:g {:transform "translate(0.5,0.5)"}
-     [:g {:id "boundary" :class (boundary-class player)}
+     [:g {:id "boundary" :class (board-layout/boundary-class player)}
       [:rect {:x -0.2 :y -0.2 :width 8.4 :height 0.2}]
       [:rect {:x -0.2 :y -0.2 :width 0.2 :height 4.2}]
       [:rect {:x -0.2 :y 5 :width 0.2 :height 4.2}]
@@ -207,10 +191,11 @@
        (into [:g {:id "opened-move"}]
          (comp
            (remove :move/illegal?)
-           (map completemove-svg))
+           (map #(wrapwith-openmove-anchor
+                   (board-layout/completemove-svg %)
+                   (create-completemove-url %)) ))
          (flatten (:piece/all-movechains opened-move)))
-       )
-     ]]])
+       )]]])
 
 (defn board-hiccup-with-pieces
   [b]
@@ -237,6 +222,7 @@
     str))
 
 (defn describe
+  "format board data for React GUI"
   [board-id]
   (-> board-id
     moves
