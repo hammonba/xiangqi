@@ -1,16 +1,15 @@
 (ns xiangqi.board-api
-  (:require [xiangqi.board.bit-utils :as bit-utils]
+  (:require [clojure.spec.alpha :as spec]
+            [clojure.test.check.generators :as test.gen]
+            [io.pedestal.http.route :as http.route]
+            [medley.core :as medley]
+            [xiangqi.board-layout :as board-layout]
+            [xiangqi.board-utils :as board-utils]
+            [xiangqi.board.bit-utils :as bit-utils]
             [xiangqi.board.board-ident :as board-ident]
             [xiangqi.board.movecalc :as movecalc]
             [xiangqi.pedestal.board]
-            [medley.core :as medley]
-            [clojure.spec.alpha :as spec]
-            [clojure.test.check.generators :as test.gen]
-            [xiangqi.board-utils :as boardutils]
-            [xiangqi.board-utils :as board-utils]
-            [xiangqi.utils :as utils]
-            [xiangqi.board-layout :as board-layout]
-            [io.pedestal.http.route :as http.route])
+            [xiangqi.utils :as utils])
   (:import [clojure.lang BigInt]))
 
 (defn decode-board
@@ -25,7 +24,7 @@
   "if this location contains a piece for specified player,
   then include moves"
   [{:board/keys [player] :as board} disploc]
-  (if (= player (boardutils/disploc-pieceowner disploc))
+  (if (= player (board-utils/disploc-pieceowner disploc))
     (assoc disploc
       :piece/all-movechains
       (movecalc/compute-and-generate-moves-for-piece board disploc))
@@ -48,14 +47,6 @@
 
 (def initial
   (bit-utils/encodebigint-as-string board-ident/initial-board-218))
-
-#_(defn openedmove-loc
-  [{:board/keys [disp-vec]} open]
-  (when open
-    (let [kw (keyword "location" open)
-          idx (board-ident/loc2index kw)]
-      (when idx
-        (nth disp-vec idx)))))
 
 (defn location-vecindex
   [loc-str]
@@ -98,35 +89,11 @@
                :path-params {:board-ident board-after})}
    svg])
 
-#_(defn did-piece-open-move?
-  [opened-location piece]
-  (when opened-location
-    (= opened-location (:piece/location piece))))
-
 (defn group-pieces-by-player
   [disposition]
   (group-by (comp board-utils/piece->owner
               :disposition/piece)
     disposition))
-
-#_(def player-svg-group
-  {:player/red {:id "red-pieces" :fill "red" :stroke "red"}
-   :player/black {:id "black-pieces" :fill "black" :stroke "black"}})
-
-#_(def piece-colour-classes
-  {:player/red "red-piece"
-   :player/black "black-piece"})
-
-#_(defn piece-href
-  [{:disposition/keys [piece]}]
-  (str "/board.svg" "#" (name piece)))
-
-#_(defn open-move
-  [board-ident svg {:piece/keys [location]}]
-  [:a {:href (http.route/url-for :board.v1/html
-               :path-params {:board-ident board-ident}
-               :query-params {:open (utils/nname location)})}
-   svg])
 
 (defn create-openmove-url
   [location]
@@ -160,15 +127,6 @@
                    (maybe-create-openmove-url %))
             disp-elts))
       (group-pieces-by-player disposition))))
-
-#_(defn completemove-svg
-  [{:move/keys [end-location board-after]}]
-  (-> [:circle {:cx (:location/x end-location)
-                :cy (:location/y end-location)
-                :r 0.5
-                :class "opened-move"}]
-    (wrapwith-openmove-anchor
-      (create-completemove-url board-after))))
 
 (defn board-hiccup
   [{:board/keys [player opened-move]} {:player/keys [red black]}]

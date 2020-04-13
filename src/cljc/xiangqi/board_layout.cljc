@@ -1,8 +1,6 @@
 (ns xiangqi.board-layout
-  (:require [medley.core :as medley]
-            [xiangqi.board-utils :as board-utils]))
-
-(def piece-owners (medley/map-keys name board-utils/piece->owner))
+  "code that is useful for svg compositing"
+  (:require [xiangqi.board-utils :as board-utils]))
 
 (def colour-classes
   {:player/red "red-piece"
@@ -108,25 +106,5 @@
      [:use {:href "/board.svg#board"}]]
     laidout-pieces
     ]])
-
-
-#_(defn board-hiccup-fullhtml
-  [{:board/keys [player]} laidout-pieces]
-  [:html
-   [:head
-    [:link {:rel "stylesheet" :href "/css/style.css"}]]
-   [:svg {:viewBox "0 0 900 1000" :preserveAspectRatio "xMidYMid meet"}
-    [:g {:transform "scale(100,100) translate(0.5,0.5)"}
-     [:g {:id "boundary" :class (boundary-class player)}
-      [:rect {:x -0.5 :y -0.5 :width 9 :height 0.5}]
-      [:rect {:x -0.5 :y -0.5 :width 0.5 :height 4.5}]
-      [:rect {:x -0.5 :y 5 :width 0.5 :height 4.5}]
-      [:rect {:x -0.5 :y 9 :width 9 :height 0.5 }]
-      [:rect {:x 8 :y -0.5 :width 0.5 :height 4.5 }]
-      [:rect {:x 8 :y 5 :width 0.5 :height 4.5 }]]
-     [:g {:class "board"}
-      [:use {:href "/board.svg#board"}]]
-     laidout-pieces
-     ]]])
 
 

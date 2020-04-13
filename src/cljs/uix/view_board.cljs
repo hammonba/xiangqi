@@ -1,10 +1,9 @@
 (ns uix.view-board
-  (:require [clojure.string :as string]
-            ["@material-ui/core/styles" :as styles]
+  (:require ["@material-ui/core/styles" :as styles]
             ["react-router-dom" :as router]
+            [uix.core.alpha :as uix]
             [xframe.core.alpha :as xf :refer [<sub]]
-            [xiangqi.board-layout :as board-layout]
-            [uix.core.alpha :as uix]))
+            [xiangqi.board-layout :as board-layout]))
 
 (def board-lines
   [:g {:id "board-lines" :stroke "black" :stroke-width "0.03"}
@@ -331,13 +330,6 @@
       (.push router-history board-after)
       (xf/dispatch [:uix.control-board/fetch-board board-after]))))
 
-#_(defn did-piece-open-move?
-  [opened-move piece]
-  (when-let [{:keys [opened-x opened-y]} @opened-move]
-    (and
-      (= (:x piece) opened-x)
-      (= (:y piece) opened-y))))
-
 (defn open-move
   [opened-move svg piece]
   (if (empty? (:piece/all-movechains piece))
@@ -346,16 +338,6 @@
       :onClick
       (fn []
         (swap! opened-move #(when-not (= piece %) piece))))))
-
-#_(defn piece-href
-  [{:disposition/keys [piece]}]
-  (str "#" (name piece)))
-
-#_(defn piece-svg
-  [colour-class {:location/keys [x y] :as disp-elt}]
-  [:g {:class colour-class}
-   [:circle {:cx x :cy y :r 0.5 :class (board-layout/piecehalo-class disp-elt)}]
-   [:use {:x x :y y :href (piece-href disp-elt)}]])
 
 (defn layout-board
   [{:board/keys [disposition player] :as board-desc}]
