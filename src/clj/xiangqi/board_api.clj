@@ -205,7 +205,9 @@
       (into [:g {:id "black-pieces" :fill "black" :stroke "black"}] black)]
      (when opened-move
        (into [:g {:id "opened-move"}]
-         (map completemove-svg)
+         (comp
+           (remove :move/illegal?)
+           (map completemove-svg))
          (flatten (:piece/all-movechains opened-move)))
        )
      ]]])
@@ -311,9 +313,9 @@
     :req [:move/piece-moved
           :move/start-location
           :move/end-location
-          :move/board-before
-          :move/board-after]
-    :opt [:move/illegal?
+          :move/board-before]
+    :opt [:move/board-after
+          :move/illegal?
           :move/flying-general?
           :move/checked-by
           :move/piece-taken

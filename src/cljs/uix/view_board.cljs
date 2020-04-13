@@ -433,12 +433,14 @@
        black)
      (when (some? @opened-move)
        (into [:g {:id "opened-move"}]
-         (map #(complete-move
-                 history
-                 (completemove-svg %)
-                 player
-                 opened-move
-                 %))
+         (comp
+           (remove :move/illegal?)
+           (map #(complete-move
+                       history
+                       (completemove-svg %)
+                       player
+                       opened-move
+                       %)))
          (flatten (:piece/all-movechains @opened-move))))]
     ))
 
