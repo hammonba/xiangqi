@@ -1,6 +1,5 @@
 (ns xiangqi.board-layout
-  (:require [clojure.tools.logging :as clog]
-            [medley.core :as medley]
+  (:require [medley.core :as medley]
             [xiangqi.board-utils :as board-utils]))
 
 (def piece-owners (medley/map-keys name board-utils/piece->owner))

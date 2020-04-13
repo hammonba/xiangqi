@@ -58,7 +58,7 @@
   [service all-addins]
   (reduce
     (fn [svc {:keys [add-ins]}]
-        (update svc merge-with comp add-ins))
+        (merge-with comp svc add-ins))
     service
     all-addins))
 

@@ -43,21 +43,13 @@
   [board-id]
   (-> board-id
     decode-board
-    addin-moves))
-
-(defn describe
-  [board-id]
-  (moves board-id))
-
-(defn describeXX
-  [datomic-conn board-id]
-  (xiangqi.board-service/board-by-ident datomic-conn
-    (bit-utils/decodestring-into-bigint board-id)))
+    addin-moves
+    (->> (spec/conform ::board))))
 
 (def initial
   (bit-utils/encodebigint-as-string board-ident/initial-board-218))
 
-(defn openedmove-loc
+#_(defn openedmove-loc
   [{:board/keys [disp-vec]} open]
   (when open
     (let [kw (keyword "location" open)
@@ -111,35 +103,6 @@
   [opened-location piece]
   (when opened-location
     (= opened-location (:piece/location piece))))
-
-#_(defn apply-layout-pieces
-  "layout-pieces is shared code between back and front end"
-  [{:board/keys [disposition opened-move ident-string]}]
-  (board-layout/layout-pieces
-    {:openmove-fn #(open-move ident-string %1 %2)
-     :completemove-fn complete-move
-     :did-piece-open-move?-fn #(did-piece-open-move?
-                                 (:disposition/location opened-move)
-                                 %1)}
-    disposition
-    opened-move
-    (flatten (:piece/all-movechains opened-move)))
-  )
-
-
-#_(defn place-pieces
-  [{:board/keys [disposition ident-string]} opened-move]
-  (reset! aom opened-move)
-  (board-layout/layout-pieces
-    {:openmove-fn #(open-move ident-string %1 %2)
-     :completemove-fn complete-move
-     :did-piece-open-move?-fn #(do
-                                 (clog/warn "didpiece-open-move %s, %s" opened-move %1)
-                                 (clog/spy :warn
-                                   (did-piece-open-move? opened-move %1)))}
-    disposition
-    (:disposition/location opened-move)
-    (mapcat :end-locations (:end-locations (clog/spy :warn opened-move)))))
 
 (defn group-pieces-by-player
   [disposition]
@@ -201,19 +164,12 @@
        [:use {:x x :y y :href (piece-href disp-elt)}]]
     (wrapwith-openmove-anchor (maybe-create-openmove-url disp-elt))))
 
-#_(defn piece-svg-withmove
-  [svg disp-elt]
-  (wrapwith-openmove-anchor svg
-    (when-not (empty? (:piece/all-movechains disp-elt))
-      (create-openmove-url (:disposition/location disp-elt)))))
-
 (defn pieces-for-player
   [{:board/keys [disposition]}]
   (medley/map-kv-vals
     (fn [player disp-elts]
         (let [cc (piece-colour-classes player)]
-          (map
-            #(piece-svg cc %)
+          (map #(piece-svg cc %)
             disp-elts)))
     (group-pieces-by-player disposition)))
 
@@ -225,7 +181,6 @@
                 :class "opened-move"}]
     (wrapwith-openmove-anchor
       (create-completemove-url board-after))))
-
 
 (def boundary-class
   {:player/red "red-boundary"
@@ -259,13 +214,6 @@
   [b]
   (board-hiccup b (pieces-for-player b)))
 
-#_(defn layout-board
-  [{:board/keys [opened-move] :as board-data}]
-  (->>
-    (place-pieces board-data (:disposition/location opened-move))
-    (board-layout/board-hiccup board-data)
-    (vector :svg {:xmlns "http://www.w3.org/2000/svg" :version "1.1" :viewBox "0 0 10 12"})))
-
 (defn stylesheet-link
   [href]
   [:link {:href href :rel "stylesheet" :type "text/css"}])
@@ -278,13 +226,20 @@
 
 (defn html
   [board-id open]
-  (-> (describe board-id)
+  (-> (moves board-id)
     (mark-openedmove open)
     remove-unoccupied
     board-hiccup-with-pieces
     add-enclosing-html
     hiccup2.core/html
     str))
+
+(defn describe
+  [board-id]
+  (-> board-id
+    moves
+    remove-unoccupied
+    (update :board/disposition group-pieces-by-player)))
 
 (spec/def :board/ident-218
   (spec/spec #(instance? BigInt %)
@@ -342,8 +297,8 @@
 
 (spec/def :move/piece-moved ::piecenames)
 (spec/def :move/piece-taken ::piecenames)
-(spec/def :move/start-location ::locations)
-(spec/def :move/end-location ::locations)
+(spec/def :move/start-location :board/disp-elt)
+(spec/def :move/end-location :board/disp-elt)
 (spec/def :move/board-before :board/ident-string)
 (spec/def :move/board-after :board/ident-string)
 (spec/def :move/ordering nat-int?)

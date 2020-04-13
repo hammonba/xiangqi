@@ -13,7 +13,16 @@
   :io.pedestal.http/port 8080
   :io.pedestal.http/resource-path "/public"
   :io.pedestal.http/join? false
-  :io.pedestal.http/dev? true}
+  :io.pedestal.http/dev? true
+  :io.pedestal.http/secure-headers
+  {:content-security-policy-settings
+   {:object-src "'none'"
+    :script-src "'self' 'unsafe-inline' 'unsafe-eval'"
+    :default-src "'self'"
+    :img-src "http: https: data:"
+    :style-src "* 'unsafe-inline'"
+    :connect-src "ws: http: https:"
+    }}}
 
  integrant/system
  {
@@ -36,7 +45,7 @@
    :api-syms [user/v1]}
 
   :component/websocket
-  {}
+  {:board-api #ig/ref [:component/vase-api :api/board]}
 
   :component/endpoint
   {:service @http/servicemap

@@ -1,12 +1,27 @@
 (ns xiangqi.websocket-api
   (:require [integrant.core :as ig]
             [io.pedestal.http.jetty.websockets :as jetty.websockets]
-            [io.pedestal.log :as log])
+            [io.pedestal.log :as log]
+            [medley.core :as medley]
+            [clojure.core.async :as async]
+            [xiangqi.board-api :as board-api])
   (:import [org.eclipse.jetty.servlet ServletContextHandler$Context ServletContextHandler]
            [org.eclipse.jetty.websocket.api Session]
            [org.eclipse.jetty.websocket.servlet ServletUpgradeResponse ServletUpgradeRequest]))
 
-(defrecord Conn [key ^Session ws-session send-chs])
+(defmulti websocket-ontext
+  (fn [conn config msg] (or (:msg-type msg) (:action msg))))
+
+(defmethod websocket-ontext :default
+  [_ _ msg]
+  (log/info :websocket-ontext msg)
+  msg)
+
+(defmethod websocket-ontext :get-board
+  [_ _ {:keys [board-ident]}]
+  (xiangqi.board-api/describe board-ident))
+
+(defrecord Conn [key ^Session ws-session send-ch])
 
 (defn on-connect
   [key ^Session ws-session send-ch]
@@ -22,9 +37,21 @@
   (log/warn :fn :on-error :key (:key conn) :exception cause)
   conn)
 
+(defn sendmsg-async
+  [conn msg]
+  (log/info "sendmsg-async: " msg)
+  (async/go (async/>! (:send-ch conn) msg)))
+
 (defn on-text
-  [^Conn conn msg]
+  [^Conn conn component msg]
   (log/info :fn :on-text :key (:key conn) :msg msg)
+  (let [{:keys [correlation-id] :as req} (clojure.edn/read-string msg)
+        resp (websocket-ontext conn component req)]
+
+    (sendmsg-async
+      conn
+      (pr-str (medley/assoc-some resp
+                :correlation-id correlation-id))))
   conn)
 
 (defn on-binary
@@ -33,7 +60,7 @@
   conn)
 
 (defn websocket-routes
-  [ws-sessions]
+  [{:keys [ws-sessions] :as component}]
   {"/ws"
    (fn []
        (let [key (Object.)]
@@ -41,7 +68,7 @@
                         (fn [ws-session ch]
                             (swap! ws-sessions assoc key (on-connect key ws-session ch))))
           :on-text (fn [msg]
-                       (swap! ws-sessions update key on-text msg))
+                       (swap! ws-sessions update key on-text component msg))
           :on-binary (fn [payload offset length]
                          (swap! ws-sessions update key on-binary payload offset length))
           :on-error (fn [cause]
@@ -59,18 +86,19 @@
 (defn build-context-configurator-addin
   "takes an atom with which to store websocket state updates
    an a ServletContextHandler to add ourselves in to "
-  [ws-sessions ^ServletContextHandler sch]
+  [component ^ServletContextHandler sch]
   (jetty.websockets/add-ws-endpoints
     sch
-    (websocket-routes ws-sessions)
+    (websocket-routes component)
     {:listener-fn ws-stateful-listener}))
 
 (defmethod ig/init-key :component/websocket
   [_ config]
-  (let [ws-sessions (atom {})]
+  (let [ws-sessions (atom {})
+        config (assoc config :ws-sessions ws-sessions)]
     (assoc-in config
       [:add-ins
        :io.pedestal.http/container-options
        :context-configurator]
-      #(build-context-configurator-addin ws-sessions %)))
+      #(build-context-configurator-addin config %)))
   )

@@ -320,16 +320,16 @@
     [:path {:d "M 500 219 Q 524 192 548 161 Q 560 146 575 145 Q 585 144 593 157 Q 600 170 595 202 Q 588 235 502 267 Q 487 273 480 271 Q 474 268 475 255 Q 476 243 500 219 Z"}]]])
 
 (defn complete-move
-  [router-history svg opened-move {:move/keys [next-board]}]
+  [router-history svg player opened-move {:move/keys [board-after]}]
   (update svg 1 assoc
     :class
-    (board-layout/opened-move-classes (:player @opened-move))
+    (board-layout/opened-move-classes player)
 
     :onClick
     (fn []
       (reset! opened-move nil)
-      (.push router-history next-board)
-      (xf/dispatch [:uix.control-board/fetch-board next-board]))))
+      (.push router-history board-after)
+      (xf/dispatch [:uix.control-board/fetch-board board-after]))))
 
 (defn did-piece-open-move?
   [opened-move piece]
@@ -340,13 +340,14 @@
 
 (defn open-move
   [opened-move svg piece]
-  (if (empty? (:piece/moves piece))
+  (if (empty? (:piece/all-movechains piece))
     svg
     (update svg 1 assoc
       :onClick
-      (fn [] (swap! opened-move #(when-not (= piece %) piece))))))
+      (fn []
+        (swap! opened-move #(when-not (= piece %) piece))))))
 
-(defn layout-board
+#_(defn layout-boardXXX
   [{:keys [disposition board-ident] :as board-desc}]
   (let [board-state (uix/state {:opened-move nil})
         opened-move (uix/cursor-in board-state [:opened-move])
@@ -358,6 +359,88 @@
       disposition
       opened-move
       (:piece/moves @opened-move))))
+
+(defn piecehalo-class
+  [{:piece/keys [all-movechains]}]
+  (if (empty? all-movechains)
+    "counter"
+    "counter has-moves"))
+
+(defn piece-href
+  [{:disposition/keys [piece]}]
+  (str "#" (name piece)))
+
+#_(defn open-move
+  [board-ident svg {:piece/keys [location]}]
+  [:a {:href (http.route/url-for :board.v1/html
+               :path-params {:board-ident board-ident}
+               :query-params {:open (utils/nname location)})}
+   svg])
+
+#_(defn create-openmove-url
+  [location]
+  (str "?open=" location))
+
+(defn create-completemove-url
+  [ident-string]
+  (str "#board/" ident-string)
+  #_(http.route/url-for :board.v1/html
+    :path-params {:board-id ident-string}))
+
+(defn wrapwith-openmove-anchor
+  "wrap svg for a piece within an html anchor"
+  [svg openmove-url]
+  (if (some? openmove-url)
+    [:a {:href openmove-url} svg]
+    svg))
+
+#_(defn maybe-create-openmove-url
+  [disp-elt]
+  (when-not (empty? (:piece/all-movechains disp-elt))
+    (create-openmove-url (:disposition/location disp-elt))))
+
+
+(defn piece-svg
+  [colour-class {:location/keys [x y] :as disp-elt}]
+  [:g {:class colour-class}
+   [:circle {:cx x :cy y :r 0.5 :class (piecehalo-class disp-elt)}]
+   [:use {:x x :y y :href (piece-href disp-elt)}]])
+
+(defn completemove-svg
+  [{:move/keys [end-location board-after]}]
+  [:circle {:cx (:location/x end-location)
+            :cy (:location/y end-location)
+            :r 0.5
+            :class "opened-move"}])
+
+(defn layout-board
+  [{:board/keys [disposition player] :as board-desc}]
+  (let [board-state (uix/state {:opened-move nil})
+        opened-move (uix/cursor-in board-state [:opened-move])
+        history (router/useHistory)
+        {:player/keys [red black]} disposition]
+
+    [:g {:id "pieces"}
+     (into [:g {:id "red-pieces" :fill "red" :stroke "red"}]
+       (map #(open-move opened-move
+               (piece-svg "red-piece" %)
+               %))
+       red)
+     (into [:g {:id "black-pieces" :fill "black" :stroke "black"}]
+       (map #(open-move opened-move
+               (piece-svg "black-piece" %)
+               %))
+       black)
+     (when (some? @opened-move)
+       (into [:g {:id "opened-move"}]
+         (map #(complete-move
+                 history
+                 (completemove-svg %)
+                 player
+                 opened-move
+                 %))
+         (flatten (:piece/all-movechains @opened-move))))]
+    ))
 
 (defn draw-board
   []
