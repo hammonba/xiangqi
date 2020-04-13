@@ -1,25 +1,52 @@
 {
- board.v1/routes #{["/moves/:id" :get @board.v1/moves :board.v1/moves]
-                   ["/describe/:id" :get @board.v1/describe :board.v1/describe]
+ vase/plugins [xiangqi.board-api io.pedestal.http.route]
+
+ board.v1/routes #{["/moves/:board-id" :get @board.v1/moves :board.v1/moves]
+                   ["/describe/:board-id" :get @board.v1/describe :board.v1/describe]
                    ["/initial" :get @board.v1/initial :board.v1/initial]
-                   ["/html/:id" :get @board.v1/html :board.v1/html]}
+                   ["/html" :get @board.v1/initial-html :board.v1/initial-html]
+                   ["/html/:board-id" :get @board.v1/html :board.v1/html]}
 
  datomic-conn (fern/lit vase.datomic/connection @board-api/datomic-uri)
 
 
  board/v1 (fern/lit vase/api
             {:path "/board/v1"
-             :on-request [@datomic-conn]
+             :on-request [@datomic-conn
+                          @io.pedestal.http/json-body]
              :on-startup [@datomic-conn
                           @board.v1.schema/attributes
                           @board.v1.schema/named-entities
                           @board.v1.schema/location-coords]
              :routes @board.v1/routes})
 
- board.v1/moves (fern/lit vase/respond {:body "Moves"})
- board.v1/describe (fern/lit vase/respond {:body "Describe"})
- board.v1/initial (fern/lit vase/respond {:body "1234"})
- board.v1/html (fern/lit vase/respond {:body "html view"})
+ board.v1/moves (fern/lit vase/respond
+                  {:name :board.v1/moves
+                   :params [board-id]
+                   :body (xiangqi.board-api/moves board-id)
+                   :doc "the moves that can be made from this board disposition"})
+
+ board.v1/describe (fern/lit vase/respond
+                     {:name :board.v1/describe
+                      :params [board-id]
+                      :body (xiangqi.board-api/describe board-id)
+                      :doc "the pieces laid out on this board and their moves"})
+
+ board.v1/initial (fern/lit vase/respond {:name :board.v1/initial
+                                          :body xiangqi.board-api/initial
+                                          :doc "the board id for the initial layout"})
+
+ board.v1/html (fern/lit vase/respond
+                 {:name :board.v1/html
+                  :params [board-id open]
+                  :headers {"Content-Type" "text/html;charset=UTF-8"}
+                  :body (xiangqi.board-api/html board-id open)
+                  :doc "plain old html for board; mainly for debug purposes"})
+
+ board.v1/initial-html (fern/lit vase/redirect
+                         {:name :board.v1/initial-html
+                          :url (io.pedestal.http.route/url-for :board.v1/html
+                                 :path-params {:board-id xiangqi.board-api/initial})})
 
  board.v1.schema/attributes (fern/lit vase.datomic/attributes
                               [:location/x :one :long "Cartesian X of board 0 to 8 where 3,4,5 are palace"]

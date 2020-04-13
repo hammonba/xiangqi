@@ -34,6 +34,7 @@
   (clojure.set/map-invert piece->hashnumber))
 
 (def ordered-locs
+  "disposition vector will hold entries in this order"
   [:location/a1 :location/a2 :location/a3 :location/a4 :location/a5 :location/a6 :location/a7 :location/a8 :location/a9 :location/a10
    :location/b1 :location/b2 :location/b3 :location/b4 :location/b5 :location/b6 :location/b7 :location/b8 :location/b9 :location/b10
    :location/c1 :location/c2 :location/c3 :location/c4 :location/c5 :location/c6 :location/c7 :location/c8 :location/c9 :location/c10
@@ -43,6 +44,10 @@
    :location/g1 :location/g2 :location/g3 :location/g4 :location/g5 :location/g6 :location/g7 :location/g8 :location/g9 :location/g10
    :location/h1 :location/h2 :location/h3 :location/h4 :location/h5 :location/h6 :location/h7 :location/h8 :location/h9 :location/h10
    :location/i1 :location/i2 :location/i3 :location/i4 :location/i5 :location/i6 :location/i7 :location/i8 :location/i9 :location/i10])
+
+(def loc2index
+  "conveninently lookup disp-vec indexes here"
+  (zipmap ordered-locs (range)))
 
 (def disposition-piece-hashnum-xform
   (comp
@@ -137,7 +142,7 @@
   [n]
   (let [[m n2] (decode-boardident-mask n)
         [f p] (decode-boardidend-file m n2)]
-    {:board/ident n
+    {:board/ident-218 n
      :board/player (hashnumber->player p)
      :board/disp-vec (build-boardvec f)}))
 

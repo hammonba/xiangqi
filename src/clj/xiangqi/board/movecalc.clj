@@ -130,16 +130,15 @@
       :move/checked-by checked-by
       :move/flying-general? (when flying-general? true)
       :move/illegal? illegal?
-      :move/end-board (when-not illegal?
-                        (board-ident/encode-boardident-218
-                          {:board/player (board-utils/opponent moving-player)
-                           :board/disp-mtx mtx-next})))))
+      :move/board-after (when-not illegal?
+                          (xiangqi.board.bit-utils/encodebigint-as-string
+                            (board-ident/encode-boardident-218
+                              {:board/player (board-utils/opponent moving-player)
+                               :board/disp-mtx mtx-next}))))))
 
 (defn generate-moves-for-piece
   "compute individual moves for piece
   take out those that land on one of our piece
-  take out those that move us into check
-  take out those that enable the antagonists to face each other
   "
   [disploc dest-locs]
   (let [us (board-utils/disploc-pieceowner disploc)]
@@ -156,12 +155,16 @@
       dest-locs)))
 
 (defn compute-and-generate-moves-for-piece
-  [{:board/keys [ident disp-mtx]} dl]
+  [{:board/keys [ident-string disp-mtx]} dl]
   (sequence
     (comp
       (keep #(seq (generate-moves-for-piece dl %)))
       (board-utils/nesting-map #(apply-boardlevel-movetest disp-mtx %))
-      (board-utils/nesting-map #(assoc % :move/start-board ident)))
+      (board-utils/nesting-map (fn [m] (-> m
+                                         (assoc :move/board-before ident-string)
+                                         #_(update :move/start-location board-utils/displocation)
+                                         #_(update :move/end-location board-utils/displocation)
+                                         ))))
     (movelocs-for-piece disp-mtx dl)))
 
 (def soldieradvance-fn

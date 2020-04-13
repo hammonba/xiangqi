@@ -16,11 +16,13 @@
   (dca/db (datomic-conn)))
 
 (defn board-by-ident
-  [board-ident]
-  (-> board-ident
-    board-ident/decode-boardident-218
-    (assoc :conn (datomic-conn))
-    tx-moves/addmoves-to-board))
+  ([board-ident]
+   (board-by-ident (datomic-conn) board-ident))
+  ([datomic-conn board-ident]
+   (-> board-ident
+     board-ident/decode-boardident-218
+     (assoc :conn (datomic-conn))
+     tx-moves/addmoves-to-board)))
 
 (defn transform-endloc
   [{:location/keys [x y] :keys [next-board]}]
@@ -40,11 +42,13 @@
 
 (defn transform-for-websocket
   [{:board/keys [disp-vec] :as board}]
-  (assoc board :board/disposition
-               (into [] (comp
-                          (filter :disposition/piece )
-                          (map transform-piece))
-                 disp-vec)))
+  (-> board
+    (assoc :board/disposition
+           (into []
+             (comp
+               (filter :disposition/piece)
+               (map transform-piece))
+             disp-vec))))
 
 (defn create-websocket-message
   [{:board/keys [ident player disposition]}]

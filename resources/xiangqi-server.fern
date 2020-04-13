@@ -1,8 +1,12 @@
 {required/namespaces []
 
- board-api/datomic-uri "datomic:mem:/board"
- game-api/datomic-uri "datomic:mem:/game"
- user-api/datomic-uri "datomic:mem:/user"
+ ;board-api/datomic-uri "datomic:mem:/board"
+ ;game-api/datomic-uri "datomic:mem:/game"
+ ;user-api/datomic-uri "datomic:mem:/user"
+
+ board-api/datomic-uri "datomic:free://localhost:4334/board"
+ game-api/datomic-uri "datomic:free://localhost:4334/game"
+ user-api/datomic-uri "datomic:free://localhost:4334/user"
 
  http/servicemap
  {:io.pedestal.http/type ::jetty

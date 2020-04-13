@@ -4,13 +4,18 @@
             [integrant.core :as ig]
             [fern]
             [fern.easy]
-            [clojure.tools.logging :as clog]))
+            [clojure.tools.logging :as clog]
+            [io.pedestal.interceptor :as interceptor]))
 
 (defmethod fern/literal 'fern/load-env
   [_ {:keys [path enclosing-env exclude-keys plugin-sym] :as argz}]
-  (merge (fern.easy/load-environment path plugin-sym)
+  (merge (fern.easy/load-environment path (or plugin-sym 'vase/plugins))
     (apply dissoc enclosing-env (or exclude-keys ['integrant/system]))
     (vase.fern/stock-interceptors)))
+
+(defmethod fern/literal 'vase/interceptor
+  [_ t]
+  (interceptor/interceptor t))
 
 (defmethod ig/init-key :component/vase-api
   [_ {:keys [specs api-syms] :as config}]

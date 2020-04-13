@@ -1,4 +1,5 @@
-(ns xiangqi.utils)
+(ns xiangqi.utils
+  (:require [medley.core :as medley]))
 
 (defn strip-keyword-ns
   [v]
@@ -30,3 +31,8 @@
   (fn [v] (when v (f v))))
 
 (def nname (nilsafe name))
+
+(defn threading-assocsome
+  "shim to conveniently put assoc-some into a threading macro"
+  [m k f & args]
+  (medley/assoc-some m k (apply f m args)))

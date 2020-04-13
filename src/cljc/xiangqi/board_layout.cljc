@@ -1,5 +1,6 @@
 (ns xiangqi.board-layout
-  (:require [medley.core :as medley]
+  (:require [clojure.tools.logging :as clog]
+            [medley.core :as medley]
             [xiangqi.board-utils :as board-utils]))
 
 (def piece-owners (medley/map-keys name board-utils/piece->owner))
@@ -13,19 +14,20 @@
    :player/black "black-opened-move"})
 
 (defn piecehalo-class
-  [piece]
-  (cond (empty? (:piece/moves piece)) "counter"
+  [disp-elt]
+  (cond (empty? (:piece/all-movechains disp-elt)) "counter"
         ;(:did-piece-open-move? piece) "has-moves"
         :else "counter has-moves"))
 
 (defn place-singlepiece
   [openmove-fn {:keys [player]
-                :piece/keys [piecename]
-                :location/keys [x y] :as piece}]
+                :disposition/keys [piece]
+                :location/keys [x y]
+                :as disp-elt}]
   (openmove-fn [:g {:class (colour-classes player)}
-                [:circle {:cx x :cy y :r 0.5 :class (piecehalo-class piece)}]
-                [:use {:x x :y y :href (str "#" (name piecename))}]]
-    piece))
+                [:circle {:cx x :cy y :r 0.5 :class (piecehalo-class disp-elt)}]
+                [:use {:x x :y y :href (str "/board.svg" "#" (name piece))}]]
+    disp-elt))
 
 (defn place-movedestination
   [decorate-fn opened-move {:move/keys [x y] :as move}]
@@ -38,7 +40,9 @@
 
 (defn group-pieces-by-player
   [disposition]
-  (group-by (comp piece-owners :piece/piecename) disposition))
+  (group-by (comp board-utils/piece->owner
+              :disposition/piece)
+    disposition))
 
 (defn layout-pieces
   [{:keys [openmove-fn completemove-fn did-piece-open-move?-fn] }

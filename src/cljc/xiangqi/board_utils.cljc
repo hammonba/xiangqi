@@ -168,5 +168,11 @@
    })
 
 (defn nesting-map
+  "transducer that applies f to cells of a matrix"
   [f]
   (map (fn [outer] (map (fn [inner] (f inner)) outer))))
+
+(defn nesting-mapv
+  "returns function that applies f to cells of a matrix"
+  [f]
+  (fn [outer] (mapv (fn [inner] (f inner)) outer)))

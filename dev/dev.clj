@@ -42,9 +42,10 @@
          config (f/evaluate (fern-env-thunk) 'integrant/system)]
      (integrant.repl/set-prep! #(ig/prep (f/evaluate (fern-env-thunk) 'integrant/system))))))
 
-(def presponse-for
-  (partial io.pedestal.test/response-for
-    (get-in system [:component/endpoint :io.pedestal.http/service-fn])))
+(defn presponse-for [& args]
+  (apply io.pedestal.test/response-for
+    (get-in system [:component/endpoint :io.pedestal.http/service-fn])
+    args))
 
 (read-ig-systemconfig)
 
