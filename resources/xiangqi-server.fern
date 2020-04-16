@@ -4,6 +4,15 @@
  ;game-api/datomic-uri "datomic:mem:/game"
  ;user-api/datomic-uri "datomic:mem:/user"
 
+ xiangqi/datomic-client {:server-type :peer-server
+                         :access-key "myaccesskey"
+                         :secret "mysecret"
+                         :endpoint "localhost:8998"
+                         :validate-hostnames false}
+ game-api/datomic-db "game"
+ board-api/datomic-db "board"
+ user-api/datomic-db "user"
+
  board-api/datomic-uri "datomic:free://localhost:4334/board"
  game-api/datomic-uri "datomic:free://localhost:4334/game"
  user-api/datomic-uri "datomic:free://localhost:4334/user"
@@ -38,21 +47,36 @@
                                    :exclude-keys #{integrant/system}})
    :api-syms [game/v1]}
 
-  [:component/vase-api :api/user]
+  :auth/controller
+  {:domain "dev-e0x9wgap.eu.auth0.com"
+   :clientId "ITQvmR3b13hmc4eL4Ct60Gipr3OUdIyr"
+   :clientSecret "wkrtUvUfhJYbPEnm64vhNrP0hBgdSHGzlpFQPLDT9SPpPUEhQS5lfRj-XS10Pc06"
+   }
+
+  [:component/vase-api :auth/controller]
   {:specs (fern/lit fern/load-env {:path "resources/user-api.fern"
                                    :enclosing-env (fern/fern)
                                    :exclude-keys #{integrant/system}})
-   :api-syms [user/v1]}
+   :api-syms [user/v1]
+   :auth/controller
+   {:domain "dev-e0x9wgap.eu.auth0.com"
+    :clientId "ITQvmR3b13hmc4eL4Ct60Gipr3OUdIyr"
+    :clientSecret "wkrtUvUfhJYbPEnm64vhNrP0hBgdSHGzlpFQPLDT9SPpPUEhQS5lfRj-XS10Pc06"}
+   }
 
   :component/websocket
   {:board-api #ig/ref [:component/vase-api :api/board]}
+
+  :jetty-addin/session-handler
+  {}
 
   :component/endpoint
   {:service @http/servicemap
    :api [#ig/ref [:component/vase-api :api/board]
          #ig/ref [:component/vase-api :api/game]
-         #ig/ref [:component/vase-api :api/user]]
-   :addins [#ig/ref :component/websocket]}
+         #ig/ref [:component/vase-api :auth/controller]]
+   :addins [#ig/ref :jetty-addin/session-handler
+            #ig/ref :component/websocket]}
   }
 
  }

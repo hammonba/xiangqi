@@ -32,7 +32,7 @@
     (name scheme)
     server-name
     server-port
-    (route/url-for :logged-in-get)))
+    (route/url-for :logged-in-get {})))
 
 (defn build-auth0-login-uri
   [^AuthenticationController control {:keys [servlet-request servlet-response redirect-uri] :as request}]

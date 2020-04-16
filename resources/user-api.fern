@@ -1,29 +1,47 @@
 {
- user.v1/routes #{["/login" :post @user.v1/do-login :user.v1/do-login]
+ vase/plugins [xiangqi.vase-api xiangqi.user-api]
+
+ user.v1/routes #{["/login" :get @user.v1/do-login :user.v1/do-login]
                   ["/logged-in" :get @user.v1/logged-in :user.v1/logged-in]
                   ["/login-failed" :get @user.v1/login-failed :user.v1/login-failed]
                   ["/do-logout" :post @user.v1/do-logout :user.v1/do-logout]
                   ["/logged-out" :get @user.v1/logged-out :user.v1/logged-out]
                   ["/details" :get @user.v1/details :user.v1/details]
                   ["/show-cookie" :get @user.v1/show-cookie :user.v1/show-cookie]
+                  ["/create-cookie/:user-uuid" :get xiangqi.user-api/create-cookie :user.v1/create-cookie]
                   }
 
- datomic-conn (fern/lit vase.datomic/connection @user-api/datomic-uri)
+ datomic-conn (fern/lit vase.datomic.cloud/client
+                @xiangqi/datomic-client
+                @user-api/datomic-db)
 
  user/v1 (fern/lit vase/api
            {:path "/user/v1"
             :on-request [@datomic-conn
+                         @io.pedestal.http.ring-middlewares/cookies
                          @io.pedestal.http.body-params/body-params
-                         @io.pedestal.http/json-body]
-            :on-startup [@datomic-conn]
+                         @io.pedestal.http/json-body
+                         @user.v1/mixin-authcontroller
+                         ]
+            :on-startup [@datomic-conn
+                         @user.v1.schema/attributes]
             :routes @user.v1/routes})
 
- user.v1/do-login (fern/lit vase/respond {:body "do-login"})
- user.v1/logged-in (fern/lit vase/respond {:body "logged-in"})
- user.v1/login-failed (fern/lit vase/respond {:body "login-failed"})
- user.v1/do-logout (fern/lit vase/respond {:body "do-logout"})
- user.v1/logged-out (fern/lit vase/respond {:body "logged-out"})
- user.v1/details (fern/lit vase/respond {:body "details"})
+ user.v1/mixin-authcontroller (fern/lit vase/subkey @auth/controller :mixin-authcontroller)
+
+ user.v1/do-login xiangqi.user-api/do-login-redirect
+ user.v1/logged-in xiangqi.user-api/do-logged-in
+ user.v1/login-failed xiangqi.user-api/do-login-failed
+ user.v1/do-logout xiangqi.user-api/do-logout
+ user.v1/logged-out xiangqi.user-api/logged-out
+ user.v1/details xiangqi.user-api/details
  user.v1/show-cookie (fern/lit vase/respond {:body "cookie"})
 
+ user.v1.schema/attributes (fern/lit vase.datomic.cloud/attributes
+                             [:user/name :one :string "The name of the user"]
+                             [:user/email :many :string "Email address for the user"]
+                             [:user/locale :one :string "Two letter string, en or whatnot"]
+                             [:user/ident :one :string :identity "Unique identifier from auth0"]
+                             [:user/uuid :many :uuid :identity "any of the uuids allocated to that user"]
+                             [:user/picture :one :uri "picture of you"])
  }

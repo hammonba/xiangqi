@@ -52,13 +52,20 @@
       extra-routes)
     (update service ::pedestal.http/routes utils/into-set extra-routes)))
 
+(defn addin-merge
+  "deep merge down to function level;
+  those get commposed"
+  [& vs]
+  (if (every? map? vs)
+    (apply merge-with addin-merge vs)
+    (apply comp vs)))
+
 (defn process-addins
-  "addins are functions that need to be composed onto the
+  "addins are (deeply nested) functions that need to be composed onto the
   service map"
   [service all-addins]
   (reduce
-    (fn [svc {:keys [add-ins]}]
-        (merge-with comp svc add-ins))
+    addin-merge
     service
     all-addins))
 
@@ -66,7 +73,7 @@
   [_ {:keys [service addins] :as this}]
   (->
     (mixin-apis this our-routes)
-    (process-addins addins)
+    (process-addins (map :add-ins addins))
     http/default-interceptors
     (cond-> (::http/dev? service) http/dev-interceptors)
     (vase.api/start-service)))

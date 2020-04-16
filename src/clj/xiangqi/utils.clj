@@ -36,3 +36,21 @@
   "shim to conveniently put assoc-some into a threading macro"
   [m k f & args]
   (medley/assoc-some m k (apply f m args)))
+
+(defn select-and-rename-keys
+  "equivalent to (comp set/rename-keys select-keys)"
+  [m kmap]
+  (into {}
+    (keep (fn [me]
+              (when-let [k2 (get kmap (key me))]
+                [k2 (val me)])))
+    m))
+
+
+(defn update-some
+  "variant of update that only alters map when
+  m contains non-nil key"
+  ([m k f & args]
+   (if-some [v (get m k)]
+     (assoc m k (apply f v args))
+     m)))

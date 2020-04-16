@@ -53,3 +53,15 @@
   [a v]
   (reset! a v)
   v)
+
+(def datomic-client
+  (datomic.client.api/client
+    {:server-type :peer-server
+     :access-key "myaccesskey"
+     :secret "mysecret"
+     :endpoint "localhost:8998"
+     :validate-hostnames false}))
+(def datomic-game-conn
+  (datomic.client.api/connect datomic-client {:db-name "game"}))
+(def datomic-user-conn
+  (datomic.client.api/connect datomic-client {:db-name "user"}))
