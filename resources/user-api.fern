@@ -8,7 +8,6 @@
                   ["/logged-out" :get @user.v1/logged-out :user.v1/logged-out]
                   ["/details" :get @user.v1/details :user.v1/details]
                   ["/show-cookie" :get @user.v1/show-cookie :user.v1/show-cookie]
-                  ["/create-cookie/:user-uuid" :get xiangqi.user-api/create-cookie :user.v1/create-cookie]
                   }
 
  datomic-conn (fern/lit vase.datomic.cloud/client
@@ -19,6 +18,7 @@
            {:path "/user/v1"
             :on-request [@datomic-conn
                          @io.pedestal.http.ring-middlewares/cookies
+                         @user-api/uid-interceptor
                          @io.pedestal.http.body-params/body-params
                          @io.pedestal.http/json-body
                          @user.v1/mixin-authcontroller

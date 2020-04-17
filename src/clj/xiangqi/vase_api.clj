@@ -49,11 +49,12 @@
       (apply dissoc (build-initkey-map kk) kignore))))
 
 (defmethod ig/init-key :component/vase-api
-  [kk {:keys [specs api-syms] :as config}]
-  (let [subkeys (initkey-composites kk config :component/vase-api)
-        subsymbols (medley/map-keys symbol subkeys)
-        env (into specs subsymbols)]
-    (reset! igr {:subkeys subkeys
+  [kk {:keys [specs api-syms integrant-refs] :as config}]
+  (let [
+        ;subkeys (initkey-composites kk config :component/vase-api)
+        ;subsymbols (medley/map-keys symbol subkeys)
+        env (into specs integrant-refs)]
+    #_(reset! igr {:subkeys subkeys
                  :subsymbols subsymbols
                  :env env})
     (assoc config

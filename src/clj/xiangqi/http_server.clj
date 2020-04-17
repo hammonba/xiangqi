@@ -73,9 +73,9 @@
   [_ {:keys [service addins] :as this}]
   (->
     (mixin-apis this our-routes)
-    (process-addins (map :add-ins addins))
     http/default-interceptors
     (cond-> (::http/dev? service) http/dev-interceptors)
+    (process-addins (map :add-ins addins))
     (vase.api/start-service)))
 
 (defmethod ig/halt-key! :component/endpoint

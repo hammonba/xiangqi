@@ -7,13 +7,14 @@
             [io.pedestal.http.route :as route]
             [clojure.tools.logging :as log]
             [datomic.client.api :as client]
-            [xiangqi.utils :as utils])
-  (:import [com.auth0.jwt JWT]
+            [xiangqi.utils :as utils]
+            [io.pedestal.interceptor :as interceptor])
+  (:import [com.auth0.jwt JWT JWTVerifier JWTCreator$Builder]
            [com.auth0.jwt.algorithms Algorithm]
            [java.util Date UUID]
            [com.auth0 AuthenticationController IdentityVerificationException]
            [com.auth0.jwk JwkProviderBuilder]
-           [com.auth0.jwt.interfaces Claim DecodedJWT]
+           [com.auth0.jwt.interfaces Claim DecodedJWT Verification]
            [org.eclipse.jetty.server.session SessionHandler]
            [org.eclipse.jetty.servlet ServletContextHandler]
            [java.net URI]))
@@ -37,6 +38,7 @@
   (let [algorithm (Algorithm/HMAC256 "secret")]
     (-> (JWT/create)
       (.withIssuer "elephantchess.me")
+      (.withAudience "elephantchess.me")
       (.withSubject (str user-uid))
       (.withIssuedAt (Date.))
       (.sign algorithm))))
@@ -90,6 +92,96 @@
         (.insertHandler sch (SessionHandler.))
         sch)))
 
+
+
+(defmethod ig/init-key :user-api/jwt-algorithm
+  [_ config]
+  (assoc config :jwt/algorithm (Algorithm/HMAC256 "secret")))
+
+(defn strarr
+  [str-or-coll]
+  (into-array String (if (coll? str-or-coll)
+                       str-or-coll
+                       [str-or-coll])))
+
+(def jwt-create-fns
+  {:iss #(.withIssuer ^JWTCreator$Builder %1 %3)
+   :sub #(.withSubject ^JWTCreator$Builder %1 %3)
+   :aud #(.withAudience ^JWTCreator$Builder %1 (strarr %3))
+   :exp #(.withExpiresAt ^JWTCreator$Builder %1 %3)
+   :nbf #(.withNotBefore ^JWTCreator$Builder %1 %3)
+   :iat #(.withIssuedAt ^JWTCreator$Builder %1 %3)
+   :jti #(.withJWTId ^JWTCreator$Builder %1 %3)})
+
+(defn with-claim
+  [^JWTCreator$Builder jcb name val]
+  (.withClaim jcb name ^String val))
+
+(defmulti create-algorithm :type)
+(defmethod create-algorithm :hmac256 [{:keys [secret]}] (Algorithm/HMAC256 secret))
+(defmethod create-algorithm :hmac512 [{:keys [secret]}] (Algorithm/HMAC512 secret))
+
+(defn jwt-create-and-sign
+  [payload]
+  (let [^JWTCreator$Builder jcb
+        (reduce-kv
+          (fn [jcb k v]
+              (let [f (get jwt-create-fns k with-claim)]
+                (f jcb k v)))
+          (JWT/create)
+          (dissoc payload :algo)
+          )]
+    (.sign jcb (create-algorithm (:algo payload)))))
+
+(def jwt-verify-fn
+  {:iss #(.withIssuer ^Verification %1 (strarr %3))
+   :sub #(.withSubject ^Verification %1 %3)
+   :aud #(.withAudience ^Verification %1 (strarr %3))
+   :leeway #(.acceptLeeway ^Verification %1 (long %3))
+   :expiresAt #(.acceptExpiresAt ^Verification %1 (long %3))
+   :notBefore #(.acceptNotBefore ^Verification %1 (long %3))
+   :issuedAt #(.acceptIssuedAt ^Verification %1 (long %3))
+   :jti #(.withJWTId ^Verification %1 %3)
+   })
+
+(defn jwt-verify-withclaim
+  [^Verification verif name v]
+  (.withClaim verif name ^String v))
+
+(defn build-jwt-verifier
+  [{:keys [algo] :as claims}]
+  (let [verifier
+        (reduce-kv
+          (fn [ver k v]
+              (let [f (get jwt-verify-fn k jwt-verify-withclaim)]
+                (f ver k v)))
+          (JWT/require (create-algorithm algo))
+          (dissoc claims :algo))]
+    (.build verifier)))
+
+(defn build-jwtcreator
+  [{:keys [iss aud algo]}]
+  (fn [sub]
+      (-> (JWT/create)
+        (.withSubject sub)
+        (.withIssuedAt (Date.))
+        (cond->
+          iss (.withIssuer iss)
+          aud (.withAudience aud))
+        (.sign algo))))
+
+(defn build-jwtverifier
+  [{:keys [iss aud algo]}]
+  (cond-> (JWT/require algo)
+    iss (.withIssuer iss)
+    aud (.withAudience aud)
+    :always .build))
+
+(defmethod ig/init-key :user-api/jwt
+  [_ config]
+  [{:create (build-jwtcreator config)
+    :verify (build-jwtverifier config)}])
+
 (def reqa (atom nil))
 
 (defn do-login-redirect
@@ -102,21 +194,27 @@
     build-auth0-login-uri
     ring-resp/redirect))
 
+(defn extract-claims-from-decoded
+  "put interesting idtoken information into a clojure may"
+  [^DecodedJWT jwt]
+  (into {}
+    (map (fn [[k ^Claim v]]
+             [(keyword k) (or
+                            (.asBoolean v)
+                            (.asDate v)
+                            (.asDouble v)
+                            (.asString v))])
+      (.getClaims jwt))))
+
+(defn ^DecodedJWT verify-cookie
+  [algo s]
+  (.verify ^JWTVerifier (.build (JWT/require algo)) s))
+
 (defn extract-claims
   "put interesting idtoken information into a clojure may"
   [idToken]
   (when idToken
-    (let [^DecodedJWT jwt (JWT/decode idToken)]
-      (into {}
-        (map (fn [[k ^Claim v]]
-                 [(keyword k) (or
-                                (.asBoolean v)
-                                (.asDate v)
-                                (.asDouble v)
-                                (.asString v))])
-          (.getClaims jwt))))))
-
-(def uia (atom nil))
+    (extract-claims-from-decoded (JWT/decode idToken))))
 
 (def my-userinfo
   {:given_name "Ben",
@@ -179,8 +277,39 @@
 
 (defn extract-uid-from-cookie
   [ck]
-  "(UUID/fromString (:sub (uapi/extract-claims (get-in (:cookies @uapi/reqa) [\"uid\" :value]))))"
-  (:uid (extract-claims ck)))
+  (when-let [s (:sub ck)]
+    (UUID/fromString s)))
+
+(def uia (atom nil))
+
+(defn user-lookupref
+  [uuid]
+  [:user/uuid uuid])
+
+(defn build-intercept-uid-from-cookie
+  "interceptor that picks up uid cookie and reads it
+  TODO what happens when verify fails?"
+  [algo]
+  (interceptor/interceptor
+    {:name ::uid-from-cookie
+     :enter
+     (fn [ctx]
+         (if-let [ck (get-in ctx [:request :cookies "uid" :value])]
+           (->>
+             (verify-cookie algo ck)
+             extract-claims-from-decoded
+             extract-uid-from-cookie
+             user-lookupref
+             (assoc-in ctx [:request :user/lookup-ref]))
+           ctx))
+     :leave
+     (fn [ctx]
+         ())}))
+
+
+(defmethod ig/init-key :user-api/uid-interceptor
+  [_ {:keys [algo]}]
+  (build-intercept-uid-from-cookie (:jwt/algorithm algo)))
 
 (defn do-logged-in
   [{:auth/keys [^AuthenticationController controller]
@@ -193,8 +322,6 @@
           existing-uid (extract-uid-from-cookie (:uid cookies))
           userinfo (medley/assoc-some userinfo :uuid existing-uid)
           uid (transact-userinfo request userinfo)]
-      (reset! uia toks)
-
       (-> (ring-resp/redirect main-page)
         (create-cookie uid)))
     (catch IdentityVerificationException idex
@@ -220,8 +347,7 @@
    :body "TODO logged out"})
 
 (defn details
-  [{:keys [db cookies] :as req}]
-  (reset! reqa req)
-  (let [lkr [:user/uuid
-             (extract-uid-from-cookie (get cookies "uid"))]]
-    (client/pull db '[*] lkr)))
+  [{:keys [db] :as req}]
+  (ring-resp/response
+    (-> (client/pull db '[*] (:user/lookup-ref req))
+      (utils/update-some :user/picture str))))

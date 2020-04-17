@@ -45,6 +45,7 @@
   {:specs (fern/lit fern/load-env {:path "resources/game-api.fern"
                                    :enclosing-env (fern/fern)
                                    :exclude-keys #{integrant/system}})
+   :integrant-refs {user-api/uid-interceptor #ig/ref :user-api/uid-interceptor}
    :api-syms [game/v1]}
 
   :auth/controller
@@ -53,15 +54,13 @@
    :clientSecret "wkrtUvUfhJYbPEnm64vhNrP0hBgdSHGzlpFQPLDT9SPpPUEhQS5lfRj-XS10Pc06"
    }
 
-  [:component/vase-api :auth/controller]
+  [:component/vase-api :user/api]
   {:specs (fern/lit fern/load-env {:path "resources/user-api.fern"
                                    :enclosing-env (fern/fern)
                                    :exclude-keys #{integrant/system}})
    :api-syms [user/v1]
-   :auth/controller
-   {:domain "dev-e0x9wgap.eu.auth0.com"
-    :clientId "ITQvmR3b13hmc4eL4Ct60Gipr3OUdIyr"
-    :clientSecret "wkrtUvUfhJYbPEnm64vhNrP0hBgdSHGzlpFQPLDT9SPpPUEhQS5lfRj-XS10Pc06"}
+   :integrant-refs {auth/controller #ig/ref :auth/controller
+                    user-api/uid-interceptor #ig/ref :user-api/uid-interceptor}
    }
 
   :component/websocket
@@ -70,13 +69,25 @@
   :jetty-addin/session-handler
   {}
 
+  :user-api/jwt-generator
+  {:issuer "http://elephantchess.me"
+   :audience "http://elephantchess.me"
+   :algorithm {:type :hmac :secret "secret"}}
+
+  :user-api/jwt-algorithm
+  {}
+
+  :user-api/uid-interceptor
+  {:algo #ig/ref :user-api/jwt-algorithm}
+
   :component/endpoint
   {:service @http/servicemap
    :api [#ig/ref [:component/vase-api :api/board]
          #ig/ref [:component/vase-api :api/game]
-         #ig/ref [:component/vase-api :auth/controller]]
+         #ig/ref [:component/vase-api :user/api]]
    :addins [#ig/ref :jetty-addin/session-handler
-            #ig/ref :component/websocket]}
+            #ig/ref :component/websocket]
+   :interceptors [#ig/ref :user-api/uid-interceptor]}
   }
 
  }
