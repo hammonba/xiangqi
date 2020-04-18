@@ -8,7 +8,9 @@
             [clojure.tools.logging :as log]
             [datomic.client.api :as client]
             [xiangqi.utils :as utils]
-            [io.pedestal.interceptor :as interceptor])
+            [io.pedestal.interceptor :as interceptor]
+            [io.pedestal.interceptor.chain :as chain]
+            [io.pedestal.interceptor.chain :as interceptor.chain])
   (:import [com.auth0.jwt JWT JWTVerifier JWTCreator$Builder]
            [com.auth0.jwt.algorithms Algorithm]
            [java.util Date UUID]
@@ -131,7 +133,26 @@
           (JWT/create)
           (dissoc payload :algo)
           )]
-    (.sign jcb (create-algorithm (:algo payload)))))
+    (.sign jcb (:algo payload))))
+
+
+(def cookie-keys
+  "keys that belong to outer level of cookie"
+  [:domain :expires :http-only :max-age :path :same-site :secure])
+
+(defn cookie-creator
+  [payload]
+  (let [jwt (jwt-create-and-sign (apply dissoc payload cookie-keys))]
+    (-> payload
+      (select-keys cookie-keys)
+      (utils/assoc-someabsent :Expires (:exp payload))
+      (assoc :value jwt)))
+  )
+
+(defn build-defaults-cookiecreator
+  "close over defaults, ensure they are added to future payloads"
+  [defaults]
+  (comp cookie-creator #(merge defaults %)))
 
 (def jwt-verify-fn
   {:iss #(.withIssuer ^Verification %1 (strarr %3))
@@ -161,6 +182,7 @@
 
 (defn build-jwtcreator
   [{:keys [iss aud algo]}]
+
   (fn [sub]
       (-> (JWT/create)
         (.withSubject sub)
@@ -173,14 +195,23 @@
 (defn build-jwtverifier
   [{:keys [iss aud algo]}]
   (cond-> (JWT/require algo)
-    iss (.withIssuer iss)
-    aud (.withAudience aud)
+    iss (.withIssuer (strarr iss))
+    aud (.withAudience (strarr aud))
     :always .build))
 
-(defmethod ig/init-key :user-api/jwt
+(defn build-jwtverifier-fn
+  [m]
+  (let [^JWTVerifier v (build-jwtverifier m)]
+    (fn [^String s] (when s
+                      (.verify v s)))))
+
+(defmethod ig/init-key :user-api/cookie-processor
   [_ config]
-  [{:create (build-jwtcreator config)
-    :verify (build-jwtverifier config)}])
+  (-> config
+    (update :algo create-algorithm)
+    (utils/invoke-and-accumulate
+      :create-fn build-defaults-cookiecreator
+      :verify-fn build-jwtverifier-fn)))
 
 (def reqa (atom nil))
 
@@ -197,14 +228,15 @@
 (defn extract-claims-from-decoded
   "put interesting idtoken information into a clojure may"
   [^DecodedJWT jwt]
-  (into {}
-    (map (fn [[k ^Claim v]]
-             [(keyword k) (or
-                            (.asBoolean v)
-                            (.asDate v)
-                            (.asDouble v)
-                            (.asString v))])
-      (.getClaims jwt))))
+  (when jwt
+    (into {}
+      (map (fn [[k ^Claim v]]
+               [(keyword k) (or
+                              (.asBoolean v)
+                              (.asDate v)
+                              (.asDouble v)
+                              (.asString v))])
+        (.getClaims jwt)))))
 
 (defn ^DecodedJWT verify-cookie
   [algo s]
@@ -267,13 +299,9 @@
       uuid)))
 
 (defn transact-userinfo
-  "insert or update user info.
-   return our own user/uuid for this record"
-  [{:keys [conn db]} userinfo]
-  (let [{:keys [tempids]}
-        (client/transact conn {:tx-data [(transform-userinfo userinfo)]})
-        user-eid (get tempids user-tempid)]
-    (ensure-uuid conn db user-eid)))
+  "insert or update user info."
+  [{:keys [conn]} userinfo]
+  (client/transact conn {:tx-data [(transform-userinfo userinfo)]}))
 
 (defn extract-uid-from-cookie
   [ck]
@@ -289,27 +317,35 @@
 (defn build-intercept-uid-from-cookie
   "interceptor that picks up uid cookie and reads it
   TODO what happens when verify fails?"
-  [algo]
-  (interceptor/interceptor
-    {:name ::uid-from-cookie
-     :enter
-     (fn [ctx]
-         (if-let [ck (get-in ctx [:request :cookies "uid" :value])]
-           (->>
-             (verify-cookie algo ck)
-             extract-claims-from-decoded
-             extract-uid-from-cookie
-             user-lookupref
-             (assoc-in ctx [:request :user/lookup-ref]))
-           ctx))
-     :leave
-     (fn [ctx]
-         ())}))
+  [{:keys [verify-fn create-fn]}]
+  (let [vfresh-uid (volatile! nil)]
+    (interceptor/interceptor
+      {:name ::uid-from-cookie
+       :enter
+       (fn [ctx]
+           (let [uid (or
+                       (-> (get-in ctx [:request :cookies "uid" :value])
+                         verify-fn
+                         extract-claims-from-decoded
+                         extract-uid-from-cookie)
+                       (vreset! vfresh-uid (UUID/randomUUID)))]
+             (update ctx :request assoc
+               :user/uuid uid
+               :user/lookup-ref (user-lookupref uid))))
+
+       :leave
+       (fn [ctx]
+           (if @vfresh-uid
+             (let [ctx (update ctx :response assoc-in [:cookies "uid"] (create-fn {:sub (str @vfresh-uid)}))
+                   ]
+               (reset! reqa ctx)
+               ctx)
+             ctx))})))
 
 
 (defmethod ig/init-key :user-api/uid-interceptor
-  [_ {:keys [algo]}]
-  (build-intercept-uid-from-cookie (:jwt/algorithm algo)))
+  [_ {:keys [cookie-fns]}]
+  (build-intercept-uid-from-cookie cookie-fns))
 
 (defn do-logged-in
   [{:auth/keys [^AuthenticationController controller]
@@ -319,11 +355,9 @@
           ;accessToken (.getAccessToken toks)
           idToken (.getIdToken toks)
           userinfo (extract-claims idToken)
-          existing-uid (extract-uid-from-cookie (:uid cookies))
-          userinfo (medley/assoc-some userinfo :uuid existing-uid)
-          uid (transact-userinfo request userinfo)]
-      (-> (ring-resp/redirect main-page)
-        (create-cookie uid)))
+          userinfo (medley/assoc-some userinfo :uuid (:user/uuid request))]
+      (transact-userinfo request userinfo)
+      (ring-resp/redirect main-page))
     (catch IdentityVerificationException idex
       (log/error :exception idex))
     ))

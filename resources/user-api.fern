@@ -42,6 +42,6 @@
                              [:user/email :many :string "Email address for the user"]
                              [:user/locale :one :string "Two letter string, en or whatnot"]
                              [:user/ident :one :string :identity "Unique identifier from auth0"]
-                             [:user/uuid :many :uuid :identity "any of the uuids allocated to that user"]
+                             [:user/uuid :one :uuid :identity "current uuid allocated to that user"]
                              [:user/picture :one :uri "picture of you"])
  }

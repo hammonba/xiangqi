@@ -69,3 +69,13 @@
   (datomic.client.api/connect datomic-client {:db-name "game"}))
 (def datomic-user-conn
   (datomic.client.api/connect datomic-client {:db-name "user"}))
+
+(defn reset-database
+  [dbname]
+  (let [uri (format "datomic:free://localhost:4334/%s" dbname)]
+    (datomic.api/delete-database uri)
+    (datomic.api/create-database uri)))
+
+(defn reset-databases
+  []
+  (run! reset-database ["game" "board" "user"]))

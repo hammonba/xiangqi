@@ -69,16 +69,18 @@
   :jetty-addin/session-handler
   {}
 
-  :user-api/jwt-generator
-  {:issuer "http://elephantchess.me"
-   :audience "http://elephantchess.me"
-   :algorithm {:type :hmac :secret "secret"}}
+  :user-api/cookie-processor
+  {:iss "http://elephantchess.me"
+   :aud "http://elephantchess.me"
+   :algo {:type :hmac256 :secret "secret"}
+   :http-only true
+   :same-site :lax}
 
   :user-api/jwt-algorithm
   {}
 
   :user-api/uid-interceptor
-  {:algo #ig/ref :user-api/jwt-algorithm}
+  {:cookie-fns #ig/ref :user-api/cookie-processor}
 
   :component/endpoint
   {:service @http/servicemap

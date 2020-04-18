@@ -54,3 +54,24 @@
    (if-some [v (get m k)]
      (assoc m k (apply f v args))
      m)))
+
+(defn assoc-someabsent
+  "only assoc the values that are missing"
+  [m & kvs]
+  (reduce (fn [m [k v]]
+              (if (or (contains? m k) (nil? v))
+                m
+                (assoc m k v)))
+    m
+    (partition 2 kvs)))
+
+
+(defn invoke-and-accumulate
+  "takes a map and a bunch of key fn pairs
+   invokes the function with the map as arg
+   and assoc result to may"
+  [m & kvs]
+  (reduce
+    (fn [m [k f]] (assoc m k (f m)))
+    m
+    (partition 2 kvs)))
