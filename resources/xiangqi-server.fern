@@ -45,7 +45,7 @@
   {:specs (fern/lit fern/load-env {:path "resources/game-api.fern"
                                    :enclosing-env (fern/fern)
                                    :exclude-keys #{integrant/system}})
-   :integrant-refs {user-api/uid-interceptor #ig/ref :user-api/uid-interceptor}
+   :integrant-refs {cookie/uid-interceptor #ig/ref :xiangqi.cookie/uid-interceptor}
    :api-syms [game/v1]}
 
   :auth/controller
@@ -60,7 +60,7 @@
                                    :exclude-keys #{integrant/system}})
    :api-syms [user/v1]
    :integrant-refs {auth/controller #ig/ref :auth/controller
-                    user-api/uid-interceptor #ig/ref :user-api/uid-interceptor}
+                    cookie/uid-interceptor #ig/ref :xiangqi.cookie/uid-interceptor}
    }
 
   :component/websocket
@@ -69,7 +69,7 @@
   :jetty-addin/session-handler
   {}
 
-  :user-api/cookie-processor
+  :xiangqi.cookie/processor
   {:iss "http://elephantchess.me"
    :aud "http://elephantchess.me"
    :algo {:type :hmac256 :secret "secret"}
@@ -79,8 +79,8 @@
   :user-api/jwt-algorithm
   {}
 
-  :user-api/uid-interceptor
-  {:cookie-fns #ig/ref :user-api/cookie-processor}
+  :xiangqi.cookie/uid-interceptor
+  {:cookie-fns #ig/ref :xiangqi.cookie/processor}
 
   :component/endpoint
   {:service @http/servicemap
@@ -89,7 +89,7 @@
          #ig/ref [:component/vase-api :user/api]]
    :addins [#ig/ref :jetty-addin/session-handler
             #ig/ref :component/websocket]
-   :interceptors [#ig/ref :user-api/uid-interceptor]}
+   :interceptors [#ig/ref :xiangqi.cookie/uid-interceptor]}
   }
 
  }

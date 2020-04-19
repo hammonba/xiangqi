@@ -18,7 +18,7 @@
            {:path "/user/v1"
             :on-request [@datomic-conn
                          @io.pedestal.http.ring-middlewares/cookies
-                         @user-api/uid-interceptor
+                         @cookie/uid-interceptor
                          @io.pedestal.http.body-params/body-params
                          @io.pedestal.http/json-body
                          @user.v1/mixin-authcontroller

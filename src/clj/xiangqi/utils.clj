@@ -75,3 +75,10 @@
     (fn [m [k f]] (assoc m k (f m)))
     m
     (partition 2 kvs)))
+
+
+(defn strarr
+  [str-or-coll]
+  (into-array String (if (coll? str-or-coll)
+                       str-or-coll
+                       [str-or-coll])))

@@ -8,6 +8,7 @@
             [clojure.tools.logging :as log]
             [datomic.client.api :as client]
             [xiangqi.utils :as utils]
+            [xiangqi.cookie :as cookie]
             [io.pedestal.interceptor :as interceptor]
             [io.pedestal.interceptor.chain :as chain]
             [io.pedestal.interceptor.chain :as interceptor.chain])
@@ -34,7 +35,7 @@
       (.withJwkProvider jwk)
       (.build))))
 
-(defn build-auth-cookie
+#_(defn build-auth-cookie
   "an authorisation cookie of our very own"
   [user-uid]
   (let [algorithm (Algorithm/HMAC256 "secret")]
@@ -45,7 +46,7 @@
       (.withIssuedAt (Date.))
       (.sign algorithm))))
 
-(defn create-cookie
+#_(defn create-cookie
   "create a user id cookie"
   ([]
    (create-cookie
@@ -100,13 +101,13 @@
   [_ config]
   (assoc config :jwt/algorithm (Algorithm/HMAC256 "secret")))
 
-(defn strarr
+#_(defn strarr
   [str-or-coll]
   (into-array String (if (coll? str-or-coll)
                        str-or-coll
                        [str-or-coll])))
 
-(def jwt-create-fns
+#_(def jwt-create-fns
   {:iss #(.withIssuer ^JWTCreator$Builder %1 %3)
    :sub #(.withSubject ^JWTCreator$Builder %1 %3)
    :aud #(.withAudience ^JWTCreator$Builder %1 (strarr %3))
@@ -115,15 +116,15 @@
    :iat #(.withIssuedAt ^JWTCreator$Builder %1 %3)
    :jti #(.withJWTId ^JWTCreator$Builder %1 %3)})
 
-(defn with-claim
+#_(defn with-claim
   [^JWTCreator$Builder jcb name val]
   (.withClaim jcb name ^String val))
 
-(defmulti create-algorithm :type)
-(defmethod create-algorithm :hmac256 [{:keys [secret]}] (Algorithm/HMAC256 secret))
-(defmethod create-algorithm :hmac512 [{:keys [secret]}] (Algorithm/HMAC512 secret))
+#_(defmulti create-algorithm :type)
+#_(defmethod create-algorithm :hmac256 [{:keys [secret]}] (Algorithm/HMAC256 secret))
+#_(defmethod create-algorithm :hmac512 [{:keys [secret]}] (Algorithm/HMAC512 secret))
 
-(defn jwt-create-and-sign
+#_(defn jwt-create-and-sign
   [payload]
   (let [^JWTCreator$Builder jcb
         (reduce-kv
@@ -136,11 +137,12 @@
     (.sign jcb (:algo payload))))
 
 
-(def cookie-keys
+#_(def cookie-keys
   "keys that belong to outer level of cookie"
-  [:domain :expires :http-only :max-age :path :same-site :secure])
+  [:domain :expires :http-only
+   :max-age :path :same-site :secure])
 
-(defn cookie-creator
+#_(defn cookie-creator
   [payload]
   (let [jwt (jwt-create-and-sign (apply dissoc payload cookie-keys))]
     (-> payload
@@ -149,12 +151,12 @@
       (assoc :value jwt)))
   )
 
-(defn build-defaults-cookiecreator
+#_(defn build-defaults-cookiecreator
   "close over defaults, ensure they are added to future payloads"
   [defaults]
   (comp cookie-creator #(merge defaults %)))
 
-(def jwt-verify-fn
+#_(def jwt-verify-fn
   {:iss #(.withIssuer ^Verification %1 (strarr %3))
    :sub #(.withSubject ^Verification %1 %3)
    :aud #(.withAudience ^Verification %1 (strarr %3))
@@ -165,11 +167,11 @@
    :jti #(.withJWTId ^Verification %1 %3)
    })
 
-(defn jwt-verify-withclaim
+#_(defn jwt-verify-withclaim
   [^Verification verif name v]
   (.withClaim verif name ^String v))
 
-(defn build-jwt-verifier
+#_(defn build-jwt-verifier
   [{:keys [algo] :as claims}]
   (let [verifier
         (reduce-kv
@@ -180,7 +182,7 @@
           (dissoc claims :algo))]
     (.build verifier)))
 
-(defn build-jwtcreator
+#_(defn build-jwtcreator
   [{:keys [iss aud algo]}]
 
   (fn [sub]
@@ -192,27 +194,26 @@
           aud (.withAudience aud))
         (.sign algo))))
 
-(defn build-jwtverifier
+#_(defn build-jwtverifier
   [{:keys [iss aud algo]}]
   (cond-> (JWT/require algo)
     iss (.withIssuer (strarr iss))
     aud (.withAudience (strarr aud))
     :always .build))
 
-(defn build-jwtverifier-fn
+#_(defn build-jwtverifier-fn
   [m]
   (let [^JWTVerifier v (build-jwtverifier m)]
     (fn [^String s] (when s
                       (.verify v s)))))
 
-(defmethod ig/init-key :user-api/cookie-processor
+#_(defmethod ig/init-key :user-api/cookie-processor
   [_ config]
   (-> config
     (update :algo create-algorithm)
     (utils/invoke-and-accumulate
       :create-fn build-defaults-cookiecreator
       :verify-fn build-jwtverifier-fn)))
-
 (def reqa (atom nil))
 
 (defn do-login-redirect
@@ -225,7 +226,7 @@
     build-auth0-login-uri
     ring-resp/redirect))
 
-(defn extract-claims-from-decoded
+#_(defn extract-claims-from-decoded
   "put interesting idtoken information into a clojure may"
   [^DecodedJWT jwt]
   (when jwt
@@ -237,8 +238,7 @@
                               (.asDouble v)
                               (.asString v))])
         (.getClaims jwt)))))
-
-(defn ^DecodedJWT verify-cookie
+#_(defn ^DecodedJWT verify-cookie
   [algo s]
   (.verify ^JWTVerifier (.build (JWT/require algo)) s))
 
@@ -246,9 +246,9 @@
   "put interesting idtoken information into a clojure may"
   [idToken]
   (when idToken
-    (extract-claims-from-decoded (JWT/decode idToken))))
+    (cookie/extract-claims-from-decoded (JWT/decode idToken))))
 
-(def my-userinfo
+#_(def my-userinfo
   {:given_name "Ben",
    :email "hammonba@gmail.com",
    :aud "ITQvmR3b13hmc4eL4Ct60Gipr3OUdIyr",
@@ -303,18 +303,18 @@
   [{:keys [conn]} userinfo]
   (client/transact conn {:tx-data [(transform-userinfo userinfo)]}))
 
-(defn extract-uid-from-cookie
+#_(defn extract-uid-from-cookie
   [ck]
   (when-let [s (:sub ck)]
     (UUID/fromString s)))
 
 (def uia (atom nil))
 
-(defn user-lookupref
+#_(defn user-lookupref
   [uuid]
   [:user/uuid uuid])
 
-(defn build-intercept-uid-from-cookie
+#_(defn build-intercept-uid-from-cookie
   "interceptor that picks up uid cookie and reads it
   TODO what happens when verify fails?"
   [{:keys [verify-fn create-fn]}]
@@ -343,7 +343,7 @@
              ctx))})))
 
 
-(defmethod ig/init-key :user-api/uid-interceptor
+#_(defmethod ig/init-key :user-api/uid-interceptor
   [_ {:keys [cookie-fns]}]
   (build-intercept-uid-from-cookie cookie-fns))
 
@@ -354,8 +354,8 @@
     (let [toks (.handle controller servlet-request servlet-response)
           ;accessToken (.getAccessToken toks)
           idToken (.getIdToken toks)
-          userinfo (extract-claims idToken)
-          userinfo (medley/assoc-some userinfo :uuid (:user/uuid request))]
+          userinfo (-> (extract-claims idToken)
+                     (medley/assoc-some :uuid (:user/uuid request)))]
       (transact-userinfo request userinfo)
       (ring-resp/redirect main-page))
     (catch IdentityVerificationException idex
