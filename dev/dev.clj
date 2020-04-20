@@ -78,4 +78,5 @@
 
 (defn reset-databases
   []
-  (run! reset-database ["game" "board" "user"]))
+  (run! reset-database ["game" "board" "user"])
+  (println "now DONT FORGET to restart the Peer Server!"))

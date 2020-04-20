@@ -13,6 +13,16 @@
  board-api/datomic-db "board"
  user-api/datomic-db "user"
 
+
+ user-api/datomic-conn (fern/lit vase.datomic.cloud/client
+                         @xiangqi/datomic-client
+                         @user-api/datomic-db)
+
+ game-api/datomic-conn (fern/lit vase.datomic.cloud/client
+                         @xiangqi/datomic-client
+                         @game-api/datomic-db)
+
+
  board-api/datomic-uri "datomic:free://localhost:4334/board"
  game-api/datomic-uri "datomic:free://localhost:4334/game"
  user-api/datomic-uri "datomic:free://localhost:4334/user"
@@ -64,7 +74,10 @@
    }
 
   :component/websocket
-  {:board-api #ig/ref [:component/vase-api :api/board]}
+  {:board-api #ig/ref [:component/vase-api :api/board]
+   :cookie-processor #ig/ref :xiangqi.cookie/processor
+   :user-api/datomic @user-api/datomic-conn
+   :game-api/datomic @game-api/datomic-conn}
 
   :jetty-addin/session-handler
   {}
@@ -73,11 +86,10 @@
   {:iss "http://elephantchess.me"
    :aud "http://elephantchess.me"
    :algo {:type :hmac256 :secret "secret"}
-   :http-only true
-   :same-site :lax}
-
-  :user-api/jwt-algorithm
-  {}
+   :path "/"
+   ;:http-only true
+   ;:same-site :lax
+   }
 
   :xiangqi.cookie/uid-interceptor
   {:cookie-fns #ig/ref :xiangqi.cookie/processor}

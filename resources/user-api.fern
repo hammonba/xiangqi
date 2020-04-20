@@ -10,20 +10,16 @@
                   ["/show-cookie" :get @user.v1/show-cookie :user.v1/show-cookie]
                   }
 
- datomic-conn (fern/lit vase.datomic.cloud/client
-                @xiangqi/datomic-client
-                @user-api/datomic-db)
-
  user/v1 (fern/lit vase/api
            {:path "/user/v1"
-            :on-request [@datomic-conn
+            :on-request [@user-api/datomic-conn
                          @io.pedestal.http.ring-middlewares/cookies
                          @cookie/uid-interceptor
                          @io.pedestal.http.body-params/body-params
                          @io.pedestal.http/json-body
                          @user.v1/mixin-authcontroller
                          ]
-            :on-startup [@datomic-conn
+            :on-startup [@user-api/datomic-conn
                          @user.v1.schema/attributes]
             :routes @user.v1/routes})
 
@@ -42,6 +38,6 @@
                              [:user/email :many :string "Email address for the user"]
                              [:user/locale :one :string "Two letter string, en or whatnot"]
                              [:user/ident :one :string :identity "Unique identifier from auth0"]
-                             [:user/uuid :one :uuid :identity "current uuid allocated to that user"]
+                             [:user/uuid :many :uuid :identity "current uuid allocated to that user"]
                              [:user/picture :one :uri "picture of you"])
  }

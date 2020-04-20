@@ -12,18 +12,14 @@
                   ["/all-games" :get @game.v1/all-games :game.v1/all-games]
                   ["/sync/:game-id" :get @game.v1/sync :game.v1/sync]}
 
- datomic-conn (fern/lit vase.datomic.cloud/client
-                @xiangqi/datomic-client
-                @game-api/datomic-db)
-
  game/v1 (fern/lit vase/api
            {:path "/game/v1"
-            :on-request [@datomic-conn
+            :on-request [@game-api/datomic-conn
                          @io.pedestal.http.ring-middlewares/cookies
                          @cookie/uid-interceptor
                          @io.pedestal.http.body-params/body-params
                          @io.pedestal.http/json-body]
-            :on-startup [@datomic-conn
+            :on-startup [@game-api/datomic-conn
                          @game.v1.schema/attributes
                          @game.v1.schema/named-entities
                          @game.v1.schema/location-coords
