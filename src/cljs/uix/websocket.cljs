@@ -1,52 +1,14 @@
 (ns uix.websocket
   (:require
-   [cljs.core.async :as core.async :refer [go go-loop <! >! close!]]
+   [cljs.core.async :as async :refer [go go-loop <! >! close!]]
    [haslett.client :as ws]
    [haslett.format :as ws-fmt]
-   [xframe.core.alpha :as xf :refer [<sub]]
-   [clojure.core.async :as async]))
+   [uix.websocket.heartbeat :as heartbeat]
+   [xframe.core.alpha :as xf :refer [<sub]]))
 
 (def dbk
   "our subsection of the global state"
   :uix/websocket)
-
-#_(defonce correlation-counter (volatile! 0))
-#_(defn next-correlation-id
-  []
-  (vswap! correlation-counter inc))
-
-#_(def outstanding-responses (atom {}))
-
-#_(defn single-request
-  "adds a correlation id and dispatches a single request to the server
-  returns a promise channel"
-  [msg]
-  (let [correlation-id (next-correlation-id)
-        ch-resp (core.async/promise-chan)
-        req (assoc msg :correlation-id correlation-id)]
-    (swap! outstanding-responses
-      assoc
-      correlation-id
-      {:correlation-id correlation-id
-       :chan ch-resp
-       :single-use true
-       :req req})
-    (go
-      (let [sink (get-in @xf/db [:uix/websocket ::ws-conn :sink])]
-        (>! sink req)))
-
-    ch-resp))
-
-#_(defn dispatch-response
-  [{:keys [correlation-id] :as msg}]
-  (when correlation-id
-    (when-let [{:keys [single-use chan]} (get @outstanding-responses correlation-id)]
-      (go (>! chan msg)
-        (when single-use
-          (do
-            (close! chan)
-            (swap! outstanding-responses dissoc correlation-id))
-          msg)))))
 
 (defn dispatch-msg
   "process an incoming message from the server"
@@ -64,47 +26,8 @@
     (if (nil? new-msg)
       (xf/dispatch [::websocket-closed (<! close-status)])
       (do
-        #_(dispatch-response new-msg)
         (xf/dispatch [::read new-msg])
         (recur (<! source))))))
-
-(defn timestamp-now [] (.getTime (js/Date.)))
-
-#_(defn heartbeat-loop
-  [{:keys [close-status] :as ws-conn}]
-  (go-loop [action :donext]
-    (when (= :donext action)
-      (let [{:keys [server-time] :as resp}
-            (<! (single-request
-                  {:action :ping
-                   :client-time (.getTime (js/Date.))}))]
-        (.log js/console "heartbeat" resp))
-      (recur (async/alt!
-               (async/timeout 20000) :donext
-               close-status :closed
-               )))))
-
-(xf/reg-event-db ::heartbeat-received
-  (fn [db [_ {:keys [req]}]]
-    (let [elapsed (- (timestamp-now) (:client-time req))]
-      (update-in db [:uix/websocket ::latency] #(conj (take-last 100 %) elapsed)))))
-
-(xf/reg-event-db ::heartbeat-failed
-  (fn [db [_ resp]]
-    (.log js/console "heartbeat-failed: " resp)
-    (update-in db [:uix/websocket ::latency] #(conj (take-last 100 %) :failed))))
-
-(defn heartbeat-loop
-  [{:keys [close-status]}]
-  (go-loop [action :recur]
-    (when (= :recur action)
-      (xf/dispatch [::send {:msg {:action :ping :client-time (timestamp-now)}
-                            :on-ok ::heartbeat-received
-                            :on-failed ::heartbeat-failed}])
-      (recur (async/alt!
-               (async/timeout 3000) :recur
-               close-status :closed
-               )))))
 
 (xf/reg-event-fx ::send
   (fn [db [_ {:keys [msg single-use? on-ok on-failed]}]]
@@ -164,15 +87,13 @@
   (fn [db [_ evt]]
     (update-in db [dbk ::queued-events] conj-vec evt)))
 
-
 (xf/reg-event-fx ::store-websocket
   (fn [db [_ ws-conn]]
     {:db (-> db
            (update :uix/websocket assoc
              ::ws-conn ws-conn
              ::read-loop (read-loop ws-conn)
-             ;::heartbeat-loop (heartbeat-loop ws-conn)
-             ::heartbeat-loop (heartbeat-loop ws-conn)
+             ::heartbeat-loop (heartbeat/heartbeat-loop ws-conn)
              ::state :connected)
            (update :uix/websocket dissoc ::queued-events))
      :dispatch-n (get-in db [dbk ::queued-events])}))
@@ -183,8 +104,7 @@
       (let [ws-conn (connect-websocket (get-in db [:uix/websocket ::url]))]
         (assoc db
           :connecting-chan
-          (go (xf/dispatch [::store-websocket (<! ws-conn)])))
-        )
+          (go (xf/dispatch [::store-websocket (<! ws-conn)]))))
       db)))
 
 (defonce init-db
