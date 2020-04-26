@@ -14,6 +14,7 @@
             ["@material-ui/core/MenuItem" :as menu-item]
             ["@material-ui/core/Menu" :as menu]
             ["@material-ui/core/Switch" :as switch]
+            ["@material-ui/core/TextField" :as textfield]
             ["@material-ui/core/Toolbar" :as toolbar]
             ["@material-ui/core/Typography" :as typography]
             ["@material-ui/icons/AccountCircle" :as account-circle]
@@ -26,6 +27,7 @@
             [uix.core.alpha :as uix]
             [uix.compiler.aot :as compiler.aot]
             [uix.compiler.alpha :as compiler]
+            [uix.control-games :refer [create-game]]
             [xframe.core.alpha :as xf]
             [clojure.string :as string]))
 
@@ -94,7 +96,8 @@
   [{app-state* :state*}]
   (let [visible* (uix/cursor-in app-state* [:visible])
         mystate* (uix/state {:player (:domain (default-switchstate player-config))
-                             :invitation (:domain (default-switchstate invitation-config))})
+                             :invitation (:domain (default-switchstate invitation-config))
+                             :title ""})
         close-fn (fn [evt] (reset! visible* false))]
     [:> dialog/default {:open @visible* :onClose close-fn}
      [:> dialog-title/default {:id :newgame-dialog-title} "Create New Game"]
@@ -105,12 +108,20 @@
      [switchgroup {:title "Invite Opponent:"
                    :vals-fn invitation-config
                    :output (uix/cursor-in mystate* [:invitation])}]
-
-     [:> dialog-content/default nil
+     [:> textfield/default {:type "text" :label "name" :id "title"
+                            :onChange (fn [evt]
+                                        ;(.log js/console "textfield/onChange: " evt)
+                                        ;(.log js/console "textfield/onChange: " js/evt.currentTarget.value)
+                                        (swap! mystate* assoc :title js/evt.currentTarget.value))}]
+     #_[:> dialog-content/default nil
       [:> dialog-contenttext/default nil
        "this is a dialog content text"]]
      [:> dialog-actions/default nil
-      [:> button/default {:color "primary" :onClick close-fn}
+      [:> button/default {:color "primary"
+                          :onClick #(do
+                                      (.log js/console "mystate=" @mystate*)
+                                      (create-game @mystate*)
+                                      (close-fn %))}
        "Create"]
       [:> button/default {:color "primary" :onClick close-fn}
        "Cancel"]]

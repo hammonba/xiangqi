@@ -28,7 +28,7 @@
 				org.clojure/core.async {:mvn/version "0.4.490"}
 				org.clojure/core.rrb-vector {:mvn/version "0.1.1"}
 				org.clojure/clojure {:mvn/version "1.10.1"}
-				org.clojure/clojurescript {:mvn/version "1.10.520"}
+				org.clojure/clojurescript {:mvn/version "1.10.742"}
 				org.clojure/spec.alpha {:mvn/version "0.2.176"}
 				org.clojure/tools.logging {:mvn/version "1.0.0"}
 

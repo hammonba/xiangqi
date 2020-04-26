@@ -2,7 +2,6 @@
   (:require
    [clojure.core.async :as async]
    ["@material-ui/core/styles" :as styles]
-   [uix.control-auth]
    [uix.control-board]
    [uix.navbar :refer [navbar]]
    [uix.view-board :as board]

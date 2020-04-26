@@ -4,6 +4,7 @@
             [medley.core :as medley]
             [xiangqi.board-api :as board-api]
             [xiangqi.board.board-ident :as board-ident]
+            [xiangqi.websocket-api :as ws]
             [clojure.tools.logging :as clog])
   (:import [java.util UUID]))
 
@@ -34,6 +35,8 @@
     (-> conn
       (client/transact {:tx-data (cons board-datoms other-datoms)})
       (get-in [:tempids board-tempid]))))
+
+;{:msg "{:player :player/red, :invitation :opponent/anyone, :title \"my first game\", :action :create-game, :correlation-id 3}", :line 85}
 
 (defn create
   [{:keys [conn] :as request}]
@@ -111,6 +114,13 @@
      :secret "mysecret"
      :endpoint "localhost:8998"
      :validate-hostnames false}))
+
+(defmethod ws/websocket-ontext :create-game
+  [_ component msg]
+  (let [datomic-conn (:game-api/datomic component)]
+    )
+  )
+
 
 (comment
   (def datomic-game-conn

@@ -23,3 +23,9 @@
     {::ws/send {:msg {:action :create-game}
                 :on-ok ::game-update
                 :on-failed ::game-create-failed}}))
+
+(defn create-game
+  [args]
+  (xf/dispatch [::ws/send {:msg (assoc args :action :create-game)
+                           :on-ok ::game-update
+                           :on-failed ::game-create-failed}]))
