@@ -8,6 +8,6 @@
    [:ol
     [:li "blah"]
     [:li "bleugh"]]
-   [:input {:value "new chat"}]
+   [:input {:value "new chat" :readOnly true}]
    ])
 

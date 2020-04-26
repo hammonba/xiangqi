@@ -13,6 +13,7 @@
    [uix.dom.alpha :as uix.dom]
    [uix.core.alpha :as uix :refer [defui]]
    [uix.websocket :as websocket]
+   [uix.newgame-dialog :refer [newgame-dialog]]
 
    [xframe.core.alpha :as xf]
 
@@ -40,26 +41,35 @@
     [board/draw-board]))
 
 (defn app []
-  [:> styles/ThemeProvider {:theme theme}
-   [:> router/HashRouter
-    [:div
-     [navbar nil nil]
-     [:> router/Switch
-      [:> router/Route {:path "/board/:id"}
-       [board-from-id]]
-      [:> router/Route {:path "/calc"}
-       [boiling/calculator]]
-      [:> router/Route {:path "/"}
-       [:> box/default {:display "flex" :flex-direction "column"}
-        [board/draw-board]
+  (let [uistate* (uix/state {:dialog-create {:visible false}})
+        dialog-create* (uix/cursor-in uistate* [:dialog-create])
+        fn-toggle-dialogcreate-visible (fn [_] (swap! uistate* update-in [:dialog-create :visible] not))]
+    (.log js/console "app: uistate* is " @uistate*)
+    [:> styles/ThemeProvider {:theme theme}
+     [:> router/HashRouter
+      [:div
+       [navbar {:uistate* uistate*
+                :toggle-createdialog fn-toggle-dialogcreate-visible}]
+       (.log js/console "app: @dialog-create* is " @dialog-create*)
+       (when (:visible @dialog-create*)
+         [newgame-dialog {:state* dialog-create*
+                          :toggle-createdialog fn-toggle-dialogcreate-visible}])
+       [:> router/Switch
+        [:> router/Route {:path "/board/:id"}
+         [board-from-id]]
+        [:> router/Route {:path "/calc"}
+         [boiling/calculator]]
+        [:> router/Route {:path "/"}
+         [:> box/default {:display "flex" :flex-direction "column"}
+          [board/draw-board]
 
-        [:> box/default {:display "flex" :flex-direction "row"}
-         [:> box/default {:flex-grow "1"}
-          [chat/box]]
-         [:> box/default {:flex-grow "1"}
-          [past-moves/box]]]]
-       ]]
-     ]]])
+          [:> box/default {:display "flex" :flex-direction "row"}
+           [:> box/default {:flex-grow "1"}
+            [chat/box]]
+           [:> box/default {:flex-grow "1"}
+            [past-moves/box]]]]
+         ]]
+       ]]]))
 
 
 (defn ^:export main

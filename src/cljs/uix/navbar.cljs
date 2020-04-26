@@ -17,6 +17,11 @@
             ["@material-ui/core/Typography" :as typography]
             ["@material-ui/icons/AccountCircle" :as account-circle]
             ["@material-ui/icons/Menu" :as menu-icon]
+            ["@material-ui/core/Dialog" :as Dialog]
+            ["@material-ui/core/DialogActions" :as DialogActions]
+            ["@material-ui/core/DialogContent" :as DialogContent]
+            ["@material-ui/core/DialogContentText" :as DialogContentText]
+            ["@material-ui/core/DialogTitle" :as DialogTitle]
             [uix.core.alpha :as uix]
             [uix.compiler.aot :as compiler.aot]
             [uix.compiler.alpha :as compiler]))
@@ -34,13 +39,19 @@
 (defn link-to-calc []
   [:> router/Link {:to "/calc"}])
 
-(defn navbar []
+
+
+(defn navbar
+  [{:keys [uistate* toggle-createdialog]}]
   (let [styles (generate-styles)
-        navstate* (uix/state {:auth false :anchorEl nil :menuOpened nil})
+        navstate* (uix/state {:auth false :anchorEl nil :menuOpened nil :createDialogOpened false})
         auth* (uix/cursor-in navstate* [:auth])
         anchorEl* (uix/cursor-in navstate* [:anchorEl])
         menuOpened* (uix/cursor-in navstate* [:menuOpened])
+        dialogCreateOpened* (uix/cursor-in uistate* [:dialog-create :visible])
         ]
+    (.log js/console "navbar: uistate* is " @uistate*)
+    (.log js/console "navbar: dialogCreateOpened* is " @dialogCreateOpened*)
 
     [:div {:className (.-root styles)}
      [:> form-group/default
@@ -72,12 +83,16 @@
                                :horizontal "left"}
          :open (= :action @menuOpened*)
          :onClose #(reset! menuOpened* nil)}
-        [:> menu-item/default {:href "/calc "
-                               :onClick (fn [evt]
+        [:> menu-item/default {:onClick (fn [evt]
                                           (reset! anchorEl* nil)
-                                          (reset! menuOpened* nil))}
-         #_"New Game"
-         [:> router/Link {:to "/calc"} "New Game"]]
+                                          (reset! menuOpened* nil)
+                                          (swap! dialogCreateOpened* not)
+                                          #_(toggle-createdialog)
+                                          #_(swap! uistate* assoc-in [:dialog-create :visible] true)
+                                          (.log js/console "createDialogOpened*:" @dialogCreateOpened*)
+                                          (.log js/console "createDialogOpened*:" (get-in @uistate* [:dialog-creat :visible])))}
+         "New Game"
+         #_[:> router/Link {:to "/calc"} "New Game"]]
         [:> menu-item/default {:onClick (fn [evt]
                                           (reset! anchorEl* nil)
                                           (reset! menuOpened* nil))}
@@ -114,4 +129,5 @@
             "My Account"]
            ]])
        ]]
+     #_[newgame-dialog createDialogOpened*]
      ]))

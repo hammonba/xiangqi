@@ -5,6 +5,7 @@
             [medley.core :as medley]
             [clojure.core.async :as async]
             [xiangqi.board-api :as board-api]
+            [xiangqi.game-api :as game-api]
             [xiangqi.user-api :as user-api]
             [xiangqi.cookie :as cookie]
             [datomic.client.api :as client]
@@ -19,6 +20,23 @@
 (defmethod websocket-ontext :ping
   [_ _ msg]
   (assoc msg :action :pong :server-time (System/currentTimeMillis)))
+
+;;TODO
+(defmethod websocket-ontext :game-api/create
+  [_ _ msg]
+  (game-api/create nil)
+  msg)
+
+(defmethod websocket-ontext :game-api/join [_ _ msg] msg)
+(defmethod websocket-ontext :game-api/leave [_ _ msg] msg)
+(defmethod websocket-ontext :game-api/move [_ _ msg] msg)
+(defmethod websocket-ontext :game-api/concede [_ _ msg] msg)
+(defmethod websocket-ontext :game-api/watch [_ _ msg] msg)
+(defmethod websocket-ontext :game-api/unwatch [_ _ msg] msg)
+(defmethod websocket-ontext :game-api/my-games [_ _ msg] msg)
+(defmethod websocket-ontext :game-api/sync [_ _ msg] msg)
+
+
 
 (defmethod websocket-ontext :default
   [_ _ msg]
