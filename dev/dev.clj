@@ -80,3 +80,15 @@
   []
   (run! reset-database ["game" "board" "user"])
   (println "now DONT FORGET to restart the Peer Server!"))
+
+
+(defn dca-query
+  []
+  (datomic.client.api/q
+    {:query '[:find ?e
+              :in $u ?uid
+              :where ($u or [?e :user/uuid ?uid])]
+     :args [(dca/db datomic-user-conn)
+            #uuid "c5658831-892e-4c67-b87e-d39a5a6a5660"]} ))
+
+

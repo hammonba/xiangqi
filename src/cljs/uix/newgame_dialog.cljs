@@ -86,17 +86,17 @@
      ]))
 
 (def invitation-config
-  {false {:label "Anyone"
-          :domain :opponent/anyone}
+  {false {:label "Public Access"
+          :domain false}
    true {:label "Invite Only"
-         :domain :opponent/invite-only}
+         :domain true}
    :default-key false})
 
 (defn newgame-dialog
   [{app-state* :state*}]
   (let [visible* (uix/cursor-in app-state* [:visible])
         mystate* (uix/state {:player (:domain (default-switchstate player-config))
-                             :invitation (:domain (default-switchstate invitation-config))
+                             :invite-only (:domain (default-switchstate invitation-config))
                              :title ""})
         close-fn (fn [evt] (reset! visible* false))]
     [:> dialog/default {:open @visible* :onClose close-fn}
@@ -105,9 +105,9 @@
      [switchgroup {:title "Play As:"
                    :vals-fn player-config
                    :output (uix/cursor-in mystate* [:player])}]
-     [switchgroup {:title "Invite Opponent:"
+     [switchgroup {:title "Invite Only:"
                    :vals-fn invitation-config
-                   :output (uix/cursor-in mystate* [:invitation])}]
+                   :output (uix/cursor-in mystate* [:invite-only])}]
      [:> textfield/default {:type "text" :label "name" :id "title"
                             :onChange (fn [evt]
                                         ;(.log js/console "textfield/onChange: " evt)

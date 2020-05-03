@@ -34,13 +34,17 @@
  game.v1/concede (fern/lit vase/respond {:body "concede game"})
  game.v1/watch (fern/lit vase/respond {:body "watch game"})
  game.v1/unwatch (fern/lit vase/respond {:body "unwatch game"})
- game.v1/my-games (fern/lit vase/respond {:body "my-games"})
+ game.v1/my-games
+
+ (fern/lit vase/respond {:body "my-games"})
  game.v1/all-games (fern/lit vase/respond {:body "all-games"})
  game.v1/sync (fern/lit vase/respond {:body "sync game"})
 
  game.v1.schema/attributes (fern/lit vase.datomic.cloud/attributes
                              [:board/ident-218 :one :bigint :identity "uniquely describes the board layout in 218 bit bigint"]
                              [:board/ident-string :one :string :identity "the board identity expressed as a string"]
+                             [:game/title :one :string "named title of this game"]
+                             [:game/creator :one :uuid "identifies user who originally created this game"]
                              [:game/ident :one :uuid :identity "uniquely identifies this game"]
                              [:game/red-player :many :uuid "identifies someone who may make red moves"]
                              [:game/black-player :many :uuid "identifies someone who may make black moves"]
@@ -50,6 +54,12 @@
                              [:game/origin-move :one :ref "the most game move that this was spawned from, if any"]
                              [:game/moves :many :ref :component "the moves places in this game"]
                              [:game/outcome :one :keyword "set when the game is complete. "]
+                             [:game/invite-only :one :boolean "does the game require invitation to join?"]
+                             [:game/invitations :many :ref :component "invitations issued"]
+                             [:invitation/ident :one :uuid "identifies this specific invitation"]
+                             [:invitation/player :one :ref "identies the colour of this invitation"]
+                             [:invitation/redeemed-at :one :instant "when was this invite redeemed"]
+                             [:invitation/redeemed-by :one :uuid "who was this invite redeemed by?"]
                              [:move/piece-moved :one :ref "the piece that was just moved"]
                              [:move/piece-taken :one :ref "the piece that was just taken"]
                              [:move/start-location :one :ref "where the piece was moved from"]

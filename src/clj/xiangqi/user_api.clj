@@ -129,11 +129,51 @@
    :headers {}
    :body "TODO logged out"})
 
+(defn all-uids-for-user
+  [db uid]
+  (sequence
+    (mapcat #(mapcat :user/uuid %))
+    (datomic.client.api/q
+      {:query '[:find (pull ?e [:user/uuid])
+                :in $ ?uid-in
+                :where
+                [?e :user/uuid ?uid-in]]
+       :args [db uid]}))
+  )
+
+(defn pull-games-for-user
+  [db all-uids]
+  (client/q
+    {:query '[:find (pull ?e [:board/ident-string
+                              :game/title
+                              :game/creator
+                              :game/ident
+                              :game/red-player
+                              :game/black-player])
+              :in $ [?uid ...]
+              :where
+              (or
+                [?e :game/black-player ?uid]
+                [?e :game/red-player ?uid])]
+     :args [db all-uids]}))
+
+(defn allgames-for-user
+  [db-user db-game uid]
+  (->>
+    (all-uids-for-user db-user uid)
+    (pull-games-for-user db-game)
+    (mapcat identity)))
+
 (defn pull-user-details
   [db lkr]
   (->
     (client/pull db '[*] lkr)
     (utils/update-some :user/picture str)))
+
+(defn userdetails-plus-games
+  [db-user db-game uid]
+  (-> (pull-user-details db-user (xiangqi.cookie/user-lookupref uid))
+    (assoc :games (allgames-for-user db-user db-game uid))))
 
 (defn user-details
   "response for websocket"

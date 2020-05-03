@@ -13,6 +13,7 @@
    [uix.core.alpha :as uix :refer [defui]]
    [uix.websocket :as websocket]
    [uix.newgame-dialog :refer [newgame-dialog]]
+   [uix.list-games :as list-games ]
 
    [xframe.core.alpha :as xf]
 
@@ -49,8 +50,7 @@
       [:div
        [navbar {:uistate* uistate*
                 :toggle-createdialog fn-toggle-dialogcreate-visible}]
-       (.log js/console "app: @dialog-create* is " @dialog-create*)
-       (when (:visible @dialog-create*)
+              (when (:visible @dialog-create*)
          [newgame-dialog {:state* dialog-create*
                           :toggle-createdialog fn-toggle-dialogcreate-visible}])
        [:> router/Switch
@@ -58,6 +58,8 @@
          [board-from-id]]
         [:> router/Route {:path "/calc"}
          [boiling/calculator]]
+        [:> router/Route {:path "/list"}
+         [list-games/games-list]]
         [:> router/Route {:path "/"}
          [:> box/default {:display "flex" :flex-direction "column"}
           [board/draw-board]

@@ -5,12 +5,15 @@
             [xiangqi.board-api :as board-api]
             [xiangqi.board.board-ident :as board-ident]
             [xiangqi.websocket-api :as ws]
+            [xiangqi.user-api :as user-api]
             [clojure.tools.logging :as clog])
-  (:import [java.util UUID]))
+  (:import [java.util UUID]
+           [xiangqi.websocket_api Conn]))
 
 #_(def da (atom nil))
 
 (def board-tempid "boardentity-tempid")
+(def game-tempid "boardentity-tempid")
 
 (defn board-entities
   "ensure that entity exists for board by transacting it; return its entity id"
@@ -115,11 +118,67 @@
      :endpoint "localhost:8998"
      :validate-hostnames false}))
 
+(def player2attribute
+  {:player/red :game/red-player
+   :player/black :game/black-player})
+
+#_(defn createboard-entity
+  [{:keys [player invitation title uid]}]
+  (let [lkr (user-api/lookup-ref uid)
+        player-attrib (player2attribute player)]
+    {:db/id game-tempid
+     :game/ident (UUID/randomUUID)
+     :game/creator lkr
+     :game/invitationss invitation
+     player-attrib lkr
+     :game/title title
+     :board/ident-string board-api/initial
+     :board/ident-218 board-ident/initial-board-218}))
+
+(def player->game-attribute
+  {:player/red :game/red-player
+   :player/black :game/black-player})
+
+(defn newgame-entity
+  [{:keys [player invite-only title uid]}]
+  {:game/ident (UUID/randomUUID)
+   :game/creator uid
+   :game/invite-only invite-only
+   (player->game-attribute player) uid
+   :game/title title
+   :board/ident-string board-api/initial
+   :board/ident-218 board-ident/initial-board-218})
+
+(defn create-newgame
+  [datomic-conn game-desc]
+  (let [ent (newgame-entity game-desc)]
+    (client/transact datomic-conn {:tx-data [ent]})
+    ent))
+
+(defonce wsot (atom nil))
+
 (defmethod ws/websocket-ontext :create-game
-  [_ component msg]
-  (let [datomic-conn (:game-api/datomic component)]
-    )
+  [^Conn conn component msg]
+  (reset! wsot {:conn conn :component component :msg msg})
+  (let [datomic-conn (:conn (:game-api/datomic component))]
+    (clog/warnf ":create=game %s" {:create-game (assoc msg :uid (:uid conn))})
+    (clog/spy :warn (create-newgame datomic-conn (assoc msg :uid (:uid conn)))))
   )
+;;TODO
+(defmethod ws/websocket-ontext :game-api/create
+  [^Conn conn component msg]
+  (reset! wsot {:conn conn :component component :msg msg})
+  (let [datomic-conn (:conn (:game-api/datomic component))]
+    (create-newgame datomic-conn (assoc msg :uid (:uid conn)))))
+
+(defmethod ws/websocket-ontext :game-api/join [_ _ msg] msg)
+(defmethod ws/websocket-ontext :game-api/leave [_ _ msg] msg)
+(defmethod ws/websocket-ontext :game-api/move [_ _ msg] msg)
+(defmethod ws/websocket-ontext :game-api/concede [_ _ msg] msg)
+(defmethod ws/websocket-ontext :game-api/watch [_ _ msg] msg)
+(defmethod ws/websocket-ontext :game-api/unwatch [_ _ msg] msg)
+(defmethod ws/websocket-ontext :game-api/my-games [_ _ msg] msg)
+(defmethod ws/websocket-ontext :game-api/sync [_ _ msg] msg)
 
 
 (comment
